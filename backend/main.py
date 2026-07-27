@@ -166,11 +166,8 @@ async def chat(request: ChatMessage):
 
 if __name__ == "__main__":
     import uvicorn
-    
-    # Check if ChromaDB exists, warn if not
     import config
-    if not os.path.exists(config.CHROMA_DB_PATH):
-        print("\n⚠️  WARNING: ChromaDB not found!")
-        print("Run first: python data_pipeline.py\n")
     
-    uvicorn.run("main:app", host="0.0.0.0", port=config.PORT, reload=True)
+    port = int(os.getenv("PORT", config.PORT))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
+
