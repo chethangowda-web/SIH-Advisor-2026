@@ -696,10 +696,53 @@ function hideTyping() {
   $('chatSendBtn').disabled = false;
 }
 
+function initScratchCard() {
+  const canvas = $('scratchCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  // Fill with silver scratch layer
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Add scratch instructions text on canvas
+  ctx.fillStyle = '#71717a';
+  ctx.font = '700 12px "Consolas", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('CLICK & DRAG TO SCRATCH AND REVEAL SECRET IDEA', canvas.width / 2, canvas.height / 2 + 4);
+
+  let isScratching = false;
+
+  function scratch(e) {
+    if (!isScratching) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || e.touches?.[0]?.clientX) - rect.left;
+    const y = (e.clientY || e.touches?.[0]?.clientY) - rect.top;
+
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 24, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  canvas.addEventListener('mousedown', () => isScratching = true);
+  canvas.addEventListener('mouseup', () => isScratching = false);
+  canvas.addEventListener('mousemove', scratch);
+  canvas.addEventListener('touchstart', () => isScratching = true);
+  canvas.addEventListener('touchend', () => isScratching = false);
+  canvas.addEventListener('touchmove', scratch);
+}
+
+function scrollToSection(id) {
+  const el = $(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
 // ── Init ─────────────────────────────────────────────────────────────
 async function init() {
   // Set Dashboard as default
   navigate('dashboard');
+  initScratchCard();
 
   // Check backend
   await checkStatus();

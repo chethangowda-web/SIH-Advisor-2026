@@ -3,53 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SIH AI Advisor — Intelligence Engine</title>
+  <title>SIH AI Advisor — Fix Your SIH Problem</title>
   <meta name="description" content="AI-powered analysis and novel project proposal generator for Smart India Hackathon." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <!-- ── Sidebar ─────────────────────────────────────────────── -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-top">
-      <div class="sidebar-logo">
-        <div class="logo-icon"><i class="fa-solid fa-brain"></i></div>
-        <div class="logo-text">
-          <span class="logo-title">SIH Advisor</span>
-          <span class="logo-sub">RAG Engine v1.0</span>
-        </div>
-      </div>
-      <nav class="sidebar-nav">
-        <button id="nav-dashboard" class="nav-item active" onclick="navigate('dashboard')">
-          <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
-        </button>
-        <button id="nav-trends" class="nav-item" onclick="navigate('trends')">
-          <i class="fa-solid fa-chart-line"></i><span>Trend Analysis</span>
-        </button>
-        <button id="nav-ideas" class="nav-item" onclick="navigate('ideas')">
-          <i class="fa-solid fa-lightbulb"></i><span>Idea Generator</span>
-        </button>
-        <button id="nav-blueprint" class="nav-item" onclick="navigate('blueprint')">
-          <i class="fa-solid fa-layer-group"></i><span>Blueprint Builder</span>
-        </button>
-        <button id="nav-chat" class="nav-item" onclick="navigate('chat')">
-          <i class="fa-solid fa-comments"></i><span>AI Consultant</span>
-        </button>
-      </nav>
+  <!-- ── Razorpay / Lando Norris Top Header ─────────────────── -->
+  <header class="top-header">
+    <div class="header-brand">
+      <div class="brand-logo">SIH</div>
+      <span class="brand-text">SIH ADVISOR // ENGINE</span>
     </div>
-    <div class="sidebar-bottom">
+
+    <nav class="top-nav">
+      <button id="nav-hero" class="nav-item active" onclick="scrollToSection('hero-section')">
+        <i class="fa-solid fa-flag"></i><span>START</span>
+      </button>
+      <button id="nav-dashboard" class="nav-item" onclick="navigate('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>DASHBOARD</span>
+      </button>
+      <button id="nav-trends" class="nav-item" onclick="navigate('trends')">
+        <i class="fa-solid fa-chart-line"></i><span>TRENDS</span>
+      </button>
+      <button id="nav-ideas" class="nav-item" onclick="navigate('ideas')">
+        <i class="fa-solid fa-lightbulb"></i><span>IDEAS</span>
+      </button>
+      <button id="nav-blueprint" class="nav-item" onclick="navigate('blueprint')">
+        <i class="fa-solid fa-layer-group"></i><span>BLUEPRINT</span>
+      </button>
+      <button id="nav-chat" class="nav-item" onclick="navigate('chat')">
+        <i class="fa-solid fa-comments"></i><span>AI MENTOR</span>
+      </button>
+    </nav>
+
+    <div class="header-telemetry">
       <div class="backend-status" id="backendStatus">
         <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">Connecting...</span>
+        <span id="statusText">CONNECTING...</span>
       </div>
     </div>
-  </aside>
+  </header>
 
-  <!-- ── Main Content ─────────────────────────────────────────── -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- KINETIC HERO SECTION (LANDO NORRIS + RAZORPAY STYLE)      -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <section id="hero-section" class="hero-container">
+    <div class="hero-badge">[ SIH 2026 // INNOVATION ADVISOR ]</div>
+    <h1 class="hero-title">FIX YOUR <span class="emerald-text">SIH PROBLEM</span></h1>
+    <p class="hero-sub">7 Years of SIH Winners. Thousands of Data Points. One RAG AI Engine.</p>
+
+    <!-- Cascading Falling Cards Stream -->
+    <div class="cards-cascade-wrapper">
+      <div class="falling-card fc-1">
+        <div class="fc-tag">SIH 2021 WINNER</div>
+        <div class="fc-title">AGRICULTURE AI</div>
+      </div>
+      <div class="falling-card fc-2">
+        <div class="fc-tag">SIH 2022 WINNER</div>
+        <div class="fc-title">BLOCKCHAIN GOV</div>
+      </div>
+      <div class="falling-card fc-3">
+        <div class="fc-tag">SIH 2023 WINNER</div>
+        <div class="fc-title">SMART WATER IOT</div>
+      </div>
+      
+      <!-- Winning Solution Center Card -->
+      <div class="solution-hero-card">
+        <div class="shc-badge">YOUR WINNING SOLUTION</div>
+        <div class="shc-title">NOVEL & FEASIBLE IDEA GENERATOR</div>
+        <div class="shc-desc">Powered by Groq Llama-3.3 & ChromaDB Vector Search. Zero redundancy. 100% original.</div>
+        <button class="btn-primary btn-large" onclick="navigate('ideas')">
+          <i class="fa-solid fa-bolt"></i> GENERATE YOUR SOLUTION NOW
+        </button>
+      </div>
+    </div>
+
+    <!-- Interactive Scratch Card Component -->
+    <div class="scratch-card-wrapper">
+      <div class="scratch-card-header">
+        <i class="fa-solid fa-sparkles"></i> INTERACTIVE SCRATCH CARD: SCRATCH TO REVEAL A SECRET IDEA
+      </div>
+      <div class="scratch-canvas-container">
+        <div class="scratch-secret-content">
+          <div class="secret-tag">[ REVEALED SECRET CONCEPT ]</div>
+          <div class="secret-title">AI-POWERED PREDICTIVE MALNUTRITION DIAGNOSIS VIA SMARTPHONE 3D DEPTH CAMERA</div>
+          <div class="secret-desc">Novelty: 9.5/10 | Feasibility: 9/10 | Target: Ministry of Women & Child Dev</div>
+        </div>
+        <canvas id="scratchCanvas" width="650" height="140"></canvas>
+      </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator" onclick="navigate('dashboard')">
+      <span>SCROLL DOWN TO EXPLORE ENGINE DASHBOARD</span>
+      <i class="fa-solid fa-chevron-down"></i>
+    </div>
+  </section>
+
+  <!-- ── Main Content Dashboard ───────────────────────────────── -->
   <main class="main-content">
 
     <div id="toastContainer" class="toast-container"></div>
@@ -59,67 +115,67 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section active" id="section-dashboard">
       <div class="page-header">
-        <div class="header-badge"><i class="fa-solid fa-microchip"></i> Smart India Hackathon Intelligence</div>
-        <h1 class="page-title">Project Advisor & Strategy Engine</h1>
-        <p class="page-subtitle">Synthesizing 7+ years of past winner benchmarks to discover novel, high-impact problem spaces.</p>
+        <div class="header-badge">[ SIH-INTELLIGENCE // KINETIC PLATFORM ]</div>
+        <h1 class="page-title">SIH STRATEGY & PROPOSAL ENGINE</h1>
+        <p class="page-subtitle">Benchmarking 7+ years of past winning solutions to identify high-impact, non-redundant problem spaces.</p>
       </div>
 
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
           <div class="stat-number" id="cnt-projects">0</div>
-          <div class="stat-label">Projects Indexed</div>
+          <div class="stat-label">PROJECTS INDEXED</div>
         </div>
         <div class="stat-card">
           <div class="stat-number" id="cnt-domains">0</div>
-          <div class="stat-label">SIH Domains Covered</div>
+          <div class="stat-label">DOMAINS COVERED</div>
         </div>
         <div class="stat-card">
           <div class="stat-number" id="cnt-years">0</div>
-          <div class="stat-label">Years Analyzed</div>
+          <div class="stat-label">YEARS ANALYZED</div>
         </div>
         <div class="stat-card">
           <div class="stat-number" id="cnt-techs">0</div>
-          <div class="stat-label">Tech Stacks Tracked</div>
+          <div class="stat-label">TECH STACKS TRACKED</div>
         </div>
       </div>
 
-      <div class="section-heading">Execution Workflows</div>
+      <div class="section-heading">EXECUTION WORKFLOWS</div>
       <div class="actions-grid">
         <div class="action-card" onclick="navigate('trends')">
           <div class="action-icon"><i class="fa-solid fa-chart-line"></i></div>
           <div class="action-content">
-            <h3>Analyze Trends</h3>
-            <p>Evaluate technology trajectories and domain selection ratios.</p>
+            <h3>ANALYZE TRENDS</h3>
+            <p>Evaluate historical trajectories and category win rates.</p>
           </div>
-          <i class="fa-solid fa-chevron-right action-arrow"></i>
+          <i class="fa-solid fa-arrow-right action-arrow"></i>
         </div>
         <div class="action-card" onclick="navigate('ideas')">
-          <div class="action-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div class="action-icon"><i class="fa-solid fa-bolt"></i></div>
           <div class="action-content">
-            <h3>Generate Ideas</h3>
-            <p>Synthesize novel project concepts with novelty scoring.</p>
+            <h3>GENERATE IDEAS</h3>
+            <p>Synthesize non-redundant concepts with novelty validation.</p>
           </div>
-          <i class="fa-solid fa-chevron-right action-arrow"></i>
+          <i class="fa-solid fa-arrow-right action-arrow"></i>
         </div>
         <div class="action-card" onclick="navigate('blueprint')">
-          <div class="action-icon"><i class="fa-solid fa-file-code"></i></div>
+          <div class="action-icon"><i class="fa-solid fa-layer-group"></i></div>
           <div class="action-content">
-            <h3>Build Blueprint</h3>
-            <p>Create full project proposals with technical architectures.</p>
+            <h3>BUILD BLUEPRINT</h3>
+            <p>Generate production architecture documents and specs.</p>
           </div>
-          <i class="fa-solid fa-chevron-right action-arrow"></i>
+          <i class="fa-solid fa-arrow-right action-arrow"></i>
         </div>
         <div class="action-card" onclick="navigate('chat')">
-          <div class="action-icon"><i class="fa-solid fa-robot"></i></div>
+          <div class="action-icon"><i class="fa-solid fa-terminal"></i></div>
           <div class="action-content">
-            <h3>Consult AI Mentor</h3>
-            <p>Interactive Q&A and architecture optimization.</p>
+            <h3>CONSULT AI MENTOR</h3>
+            <p>Interactive architecture queries and Q&A optimization.</p>
           </div>
-          <i class="fa-solid fa-chevron-right action-arrow"></i>
+          <i class="fa-solid fa-arrow-right action-arrow"></i>
         </div>
       </div>
 
-      <div class="section-heading">Browse Index by Domain</div>
+      <div class="section-heading">INDEX // BROWSE BY DOMAIN</div>
       <div class="domains-grid" id="domainsGrid"></div>
     </section>
 
@@ -128,44 +184,44 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section" id="section-trends">
       <div class="page-header">
-        <h1 class="page-title">Trend Analysis & Insights</h1>
-        <p class="page-subtitle">Pattern extraction across winning historical entries (2017–2024)</p>
+        <h1 class="page-title">HISTORICAL TREND ANALYSIS</h1>
+        <p class="page-subtitle">Pattern extraction across indexed historical entries (2017–2024)</p>
       </div>
 
       <div id="trendsLoader" class="loader-card">
         <div class="spinner"></div>
-        <p>Extracting trends across vector database entries...</p>
+        <p>QUERYING VECTOR INDEX FOR TREND TRAJECTORIES...</p>
       </div>
 
       <div id="trendsContent" class="hidden">
         <div class="charts-grid">
           <div class="chart-card wide">
-            <h3 class="chart-title"><i class="fa-solid fa-chart-bar"></i> Domain Distribution</h3>
+            <h3 class="chart-title"><i class="fa-solid fa-chart-bar"></i> DOMAIN DISTRIBUTION INDEX</h3>
             <canvas id="domainChart" height="260"></canvas>
           </div>
           <div class="chart-card">
-            <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> Entry Volume Trajectory</h3>
+            <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> ENTRY VOLUME TRAJECTORY</h3>
             <canvas id="yearChart" height="220"></canvas>
           </div>
           <div class="chart-card">
-            <h3 class="chart-title"><i class="fa-solid fa-pie-chart"></i> Hardware vs Software Distribution</h3>
+            <h3 class="chart-title"><i class="fa-solid fa-pie-chart"></i> HARDWARE VS SOFTWARE RATIO</h3>
             <canvas id="hwswChart" height="220"></canvas>
           </div>
         </div>
 
         <div class="two-col">
           <div class="glass-card">
-            <h3 class="card-title"><i class="fa-solid fa-code"></i> Rising Technologies</h3>
+            <h3 class="card-title"><i class="fa-solid fa-code"></i> RISING TECHNOLOGIES</h3>
             <div id="techBadges" class="tech-badges"></div>
           </div>
           <div class="glass-card">
-            <h3 class="card-title"><i class="fa-solid fa-arrow-trend-up"></i> Projected High-Impact Domains</h3>
+            <h3 class="card-title"><i class="fa-solid fa-arrow-trend-up"></i> HIGH-TRAJECTORY DOMAINS</h3>
             <div id="hotDomains"></div>
           </div>
         </div>
 
         <div class="glass-card">
-          <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Analytical Insights</h3>
+          <h3 class="card-title"><i class="fa-solid fa-list-check"></i> ANALYTICAL INSIGHTS</h3>
           <div id="keyInsights"></div>
         </div>
       </div>
@@ -176,14 +232,14 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section" id="section-ideas">
       <div class="page-header">
-        <h1 class="page-title">Novel Idea Generator</h1>
-        <p class="page-subtitle">Synthesize unique problem solutions benchmarked against past winners</p>
+        <h1 class="page-title">PROPOSAL SYNTHESIZER</h1>
+        <p class="page-subtitle">Synthesize non-redundant concepts benchmarked against RAG index</p>
       </div>
 
       <div class="gen-form glass-card">
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Domain Selection</label>
+            <label class="form-label">DOMAIN SELECTION</label>
             <select id="domainSelect" class="form-select">
               <option value="">Choose domain...</option>
               <option value="Agriculture">Agriculture</option>
@@ -201,19 +257,19 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Focus Area (Optional)</label>
+            <label class="form-label">FOCUS AREA / KEYWORDS</label>
             <input id="themeInput" class="form-input" type="text" placeholder="e.g. computer vision, rural access, blockchain" />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Output Count: <span id="numIdeasLabel">3</span></label>
+            <label class="form-label">OUTPUT COUNT: <span id="numIdeasLabel">3</span></label>
             <input id="numIdeas" type="range" min="1" max="5" value="3" class="form-range"
               oninput="document.getElementById('numIdeasLabel').textContent = this.value" />
           </div>
           <div class="form-group flex-end">
             <button class="btn-primary btn-large" id="generateIdeasBtn" onclick="generateIdeas()">
-              <i class="fa-solid fa-bolt"></i> Generate Proposals
+              <i class="fa-solid fa-bolt"></i> SYNTHESIZE PROPOSALS
             </button>
           </div>
         </div>
@@ -221,7 +277,7 @@
 
       <div id="ideasLoader" class="loader-card hidden">
         <div class="spinner"></div>
-        <p>Synthesizing non-redundant proposals...</p>
+        <p>RUNNING RAG NOVELTY FILTER & GENERATION...</p>
       </div>
 
       <div id="ideasGrid" class="ideas-grid"></div>
@@ -232,18 +288,18 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section" id="section-blueprint">
       <div class="page-header">
-        <h1 class="page-title">Blueprint Builder</h1>
-        <p class="page-subtitle">Generate technical specification documents for hackathon submissions</p>
+        <h1 class="page-title">BLUEPRINT BUILDER</h1>
+        <p class="page-subtitle">Generate production architecture specification documents</p>
       </div>
 
       <div id="blueprintForm" class="glass-card">
-        <div class="card-title"><i class="fa-solid fa-pen"></i> Proposal Configuration</div>
+        <div class="card-title"><i class="fa-solid fa-sliders"></i> SPECIFICATION CONFIGURATION</div>
         <div class="form-group">
-          <label class="form-label">Project Title *</label>
+          <label class="form-label">PROJECT TITLE *</label>
           <input id="bp-title" class="form-input" placeholder="e.g. Computer Vision Crop Pathology System" />
         </div>
         <div class="form-group">
-          <label class="form-label">Domain *</label>
+          <label class="form-label">DOMAIN *</label>
           <select id="bp-domain" class="form-select">
             <option value="">Select domain...</option>
             <option value="Agriculture">Agriculture</option>
@@ -260,35 +316,35 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Problem Definition *</label>
+          <label class="form-label">PROBLEM DEFINITION *</label>
           <textarea id="bp-problem" class="form-textarea" rows="3" placeholder="Quantify problem scope, affected demographics, and current constraints."></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Proposed Technical Solution *</label>
+          <label class="form-label">PROPOSED TECHNICAL SOLUTION *</label>
           <textarea id="bp-solution" class="form-textarea" rows="3" placeholder="Describe core system architecture, algorithms, and key features."></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Tech Stack (comma separated)</label>
+          <label class="form-label">TECH STACK (COMMA SEPARATED)</label>
           <input id="bp-tech" class="form-input" placeholder="e.g. Python, TensorFlow, FastAPI, PostgreSQL" />
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Team Members</label>
+            <label class="form-label">TEAM SIZE</label>
             <input id="bp-team" class="form-input" type="number" value="6" min="1" max="10" />
           </div>
           <div class="form-group">
-            <label class="form-label">Timeline (Weeks)</label>
+            <label class="form-label">TIMELINE (WEEKS)</label>
             <input id="bp-duration" class="form-input" type="number" value="4" min="1" max="12" />
           </div>
         </div>
         <button class="btn-primary btn-large" id="generateBlueprintBtn" onclick="generateBlueprint()">
-          <i class="fa-solid fa-file-code"></i> Generate Architecture Document
+          <i class="fa-solid fa-file-code"></i> GENERATE SPECIFICATION DOCUMENT
         </button>
       </div>
 
       <div id="blueprintLoader" class="loader-card hidden">
         <div class="spinner"></div>
-        <p>Compiling technical architecture specification...</p>
+        <p>BUILDING TECHNICAL SPECIFICATION BLUEPRINT...</p>
       </div>
 
       <div id="blueprintOutput" class="hidden"></div>
@@ -299,16 +355,16 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section" id="section-chat">
       <div class="page-header">
-        <h1 class="page-title">AI Consultant</h1>
-        <p class="page-subtitle">Interactive queries against historical benchmarks and technical advice</p>
+        <h1 class="page-title">AI CONSULTANT TERMINAL</h1>
+        <p class="page-subtitle">Interactive queries against historical benchmarks & tech optimization</p>
       </div>
 
       <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
           <div class="chat-bubble bot">
-            <div class="bubble-avatar"><i class="fa-solid fa-brain"></i></div>
+            <div class="bubble-avatar">SIH</div>
             <div class="bubble-content">
-              <p>SIH Advisor System ready. Ask technical questions regarding domain distribution, judge evaluation criteria, or tech stack optimization.</p>
+              <p>SIH Advisor Engine online. Ask technical questions regarding domain distribution, judge evaluation criteria, or tech stack optimization.</p>
             </div>
           </div>
         </div>
@@ -318,7 +374,7 @@
           <button class="suggestion-chip" onclick="sendSuggestion(this)">Judge evaluation criteria</button>
         </div>
         <div class="chat-input-bar">
-          <input id="chatInput" class="chat-input" type="text" placeholder="Type message..."
+          <input id="chatInput" class="chat-input" type="text" placeholder="Type prompt..."
             onkeydown="if(event.key==='Enter') sendChatMessage()" />
           <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
             <i class="fa-solid fa-paper-plane"></i>
