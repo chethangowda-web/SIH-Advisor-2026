@@ -3,48 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SIH AI Advisor — Win Smart India Hackathon</title>
-  <meta name="description" content="AI-powered Smart India Hackathon advisor. Analyze winning trends, generate novel ideas, and create professional project blueprints." />
+  <title>SIH AI Advisor — Intelligence Engine</title>
+  <meta name="description" content="AI-powered analysis and novel project proposal generator for Smart India Hackathon." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <!-- ── Ambient Background ──────────────────────────────────── -->
-  <div class="ambient-bg">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-  </div>
-
   <!-- ── Sidebar ─────────────────────────────────────────────── -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
       <div class="sidebar-logo">
-        <div class="logo-icon">⚡</div>
+        <div class="logo-icon"><i class="fa-solid fa-brain"></i></div>
         <div class="logo-text">
           <span class="logo-title">SIH Advisor</span>
-          <span class="logo-sub">AI Powered</span>
+          <span class="logo-sub">RAG Engine v1.0</span>
         </div>
       </div>
       <nav class="sidebar-nav">
         <button id="nav-dashboard" class="nav-item active" onclick="navigate('dashboard')">
-          <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+          <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
         </button>
         <button id="nav-trends" class="nav-item" onclick="navigate('trends')">
-          <i class="fa-solid fa-chart-line"></i><span>Trends</span>
+          <i class="fa-solid fa-chart-line"></i><span>Trend Analysis</span>
         </button>
         <button id="nav-ideas" class="nav-item" onclick="navigate('ideas')">
           <i class="fa-solid fa-lightbulb"></i><span>Idea Generator</span>
         </button>
         <button id="nav-blueprint" class="nav-item" onclick="navigate('blueprint')">
-          <i class="fa-solid fa-file-code"></i><span>Blueprint</span>
+          <i class="fa-solid fa-layer-group"></i><span>Blueprint Builder</span>
         </button>
         <button id="nav-chat" class="nav-item" onclick="navigate('chat')">
-          <i class="fa-solid fa-robot"></i><span>AI Chat</span>
+          <i class="fa-solid fa-comments"></i><span>AI Consultant</span>
         </button>
       </nav>
     </div>
@@ -59,7 +52,6 @@
   <!-- ── Main Content ─────────────────────────────────────────── -->
   <main class="main-content">
 
-    <!-- ── TOAST ───────────────────────────────────────────────── -->
     <div id="toastContainer" class="toast-container"></div>
 
     <!-- ══════════════════════════════════════════════════════════ -->
@@ -67,79 +59,67 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section active" id="section-dashboard">
       <div class="page-header">
-        <div class="header-badge">🏆 Smart India Hackathon AI Advisor</div>
-        <h1 class="page-title">Win SIH with <span class="gradient-text">AI Intelligence</span></h1>
-        <p class="page-subtitle">35+ winning projects analyzed · 8 domains · 7 years of data · Your unfair advantage</p>
+        <div class="header-badge"><i class="fa-solid fa-microchip"></i> Smart India Hackathon Intelligence</div>
+        <h1 class="page-title">Project Advisor & Strategy Engine</h1>
+        <p class="page-subtitle">Synthesizing 7+ years of past winner benchmarks to discover novel, high-impact problem spaces.</p>
       </div>
 
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
-          <div class="stat-icon-wrap" style="background: linear-gradient(135deg,#6366f1,#8b5cf6)">
-            <i class="fa-solid fa-folder-open"></i>
-          </div>
           <div class="stat-number" id="cnt-projects">0</div>
-          <div class="stat-label">Projects Analyzed</div>
+          <div class="stat-label">Projects Indexed</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-wrap" style="background: linear-gradient(135deg,#14b8a6,#06b6d4)">
-            <i class="fa-solid fa-layer-group"></i>
-          </div>
           <div class="stat-number" id="cnt-domains">0</div>
-          <div class="stat-label">Domains Covered</div>
+          <div class="stat-label">SIH Domains Covered</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-wrap" style="background: linear-gradient(135deg,#f59e0b,#ef4444)">
-            <i class="fa-solid fa-calendar-days"></i>
-          </div>
           <div class="stat-number" id="cnt-years">0</div>
-          <div class="stat-label">Years of Data</div>
+          <div class="stat-label">Years Analyzed</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-wrap" style="background: linear-gradient(135deg,#ec4899,#8b5cf6)">
-            <i class="fa-solid fa-microchip"></i>
-          </div>
           <div class="stat-number" id="cnt-techs">0</div>
-          <div class="stat-label">Technologies Tracked</div>
+          <div class="stat-label">Tech Stacks Tracked</div>
         </div>
       </div>
 
-      <h2 class="section-heading">Quick Actions</h2>
+      <div class="section-heading">Execution Workflows</div>
       <div class="actions-grid">
         <div class="action-card" onclick="navigate('trends')">
-          <div class="action-icon">📊</div>
+          <div class="action-icon"><i class="fa-solid fa-chart-line"></i></div>
           <div class="action-content">
             <h3>Analyze Trends</h3>
-            <p>Discover what domains & tech are winning in 2024-25</p>
+            <p>Evaluate technology trajectories and domain selection ratios.</p>
           </div>
-          <i class="fa-solid fa-arrow-right action-arrow"></i>
+          <i class="fa-solid fa-chevron-right action-arrow"></i>
         </div>
         <div class="action-card" onclick="navigate('ideas')">
-          <div class="action-icon">💡</div>
+          <div class="action-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
           <div class="action-content">
             <h3>Generate Ideas</h3>
-            <p>Get AI-powered novel project ideas for any domain</p>
+            <p>Synthesize novel project concepts with novelty scoring.</p>
           </div>
-          <i class="fa-solid fa-arrow-right action-arrow"></i>
+          <i class="fa-solid fa-chevron-right action-arrow"></i>
         </div>
         <div class="action-card" onclick="navigate('blueprint')">
-          <div class="action-icon">📋</div>
+          <div class="action-icon"><i class="fa-solid fa-file-code"></i></div>
           <div class="action-content">
             <h3>Build Blueprint</h3>
-            <p>Create a professional full project proposal instantly</p>
+            <p>Create full project proposals with technical architectures.</p>
           </div>
-          <i class="fa-solid fa-arrow-right action-arrow"></i>
+          <i class="fa-solid fa-chevron-right action-arrow"></i>
         </div>
         <div class="action-card" onclick="navigate('chat')">
-          <div class="action-icon">🤖</div>
+          <div class="action-icon"><i class="fa-solid fa-robot"></i></div>
           <div class="action-content">
-            <h3>Ask AI Advisor</h3>
-            <p>Chat with your personal SIH expert anytime</p>
+            <h3>Consult AI Mentor</h3>
+            <p>Interactive Q&A and architecture optimization.</p>
           </div>
-          <i class="fa-solid fa-arrow-right action-arrow"></i>
+          <i class="fa-solid fa-chevron-right action-arrow"></i>
         </div>
       </div>
 
-      <h2 class="section-heading">Browse by Domain</h2>
+      <div class="section-heading">Browse Index by Domain</div>
       <div class="domains-grid" id="domainsGrid"></div>
     </section>
 
@@ -148,45 +128,44 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section" id="section-trends">
       <div class="page-header">
-        <h1 class="page-title">Trend <span class="gradient-text">Analysis</span></h1>
-        <p class="page-subtitle">AI-powered insights from 35+ SIH winning projects (2017–2024)</p>
-        <button class="btn-primary" onclick="loadTrends(true)"><i class="fa-solid fa-rotate"></i> Refresh Analysis</button>
+        <h1 class="page-title">Trend Analysis & Insights</h1>
+        <p class="page-subtitle">Pattern extraction across winning historical entries (2017–2024)</p>
       </div>
 
       <div id="trendsLoader" class="loader-card">
         <div class="spinner"></div>
-        <p>AI is analyzing trends across all winning projects...</p>
+        <p>Extracting trends across vector database entries...</p>
       </div>
 
       <div id="trendsContent" class="hidden">
         <div class="charts-grid">
           <div class="chart-card wide">
-            <h3 class="chart-title"><i class="fa-solid fa-chart-bar"></i> Winning Projects by Domain</h3>
-            <canvas id="domainChart" height="280"></canvas>
+            <h3 class="chart-title"><i class="fa-solid fa-chart-bar"></i> Domain Distribution</h3>
+            <canvas id="domainChart" height="260"></canvas>
           </div>
           <div class="chart-card">
-            <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> Projects by Year</h3>
+            <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> Entry Volume Trajectory</h3>
             <canvas id="yearChart" height="220"></canvas>
           </div>
           <div class="chart-card">
-            <h3 class="chart-title"><i class="fa-solid fa-circle-half-stroke"></i> Hardware vs Software</h3>
+            <h3 class="chart-title"><i class="fa-solid fa-pie-chart"></i> Hardware vs Software Distribution</h3>
             <canvas id="hwswChart" height="220"></canvas>
           </div>
         </div>
 
         <div class="two-col">
           <div class="glass-card">
-            <h3 class="card-title"><i class="fa-solid fa-fire"></i> Rising Technologies</h3>
+            <h3 class="card-title"><i class="fa-solid fa-code"></i> Rising Technologies</h3>
             <div id="techBadges" class="tech-badges"></div>
           </div>
           <div class="glass-card">
-            <h3 class="card-title"><i class="fa-solid fa-rocket"></i> Predicted Hot Domains 2025</h3>
+            <h3 class="card-title"><i class="fa-solid fa-arrow-trend-up"></i> Projected High-Impact Domains</h3>
             <div id="hotDomains"></div>
           </div>
         </div>
 
         <div class="glass-card">
-          <h3 class="card-title"><i class="fa-solid fa-brain"></i> AI Key Insights</h3>
+          <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Analytical Insights</h3>
           <div id="keyInsights"></div>
         </div>
       </div>
@@ -197,44 +176,44 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section" id="section-ideas">
       <div class="page-header">
-        <h1 class="page-title">Idea <span class="gradient-text">Generator</span></h1>
-        <p class="page-subtitle">AI generates novel, judge-winning project ideas inspired by past winners</p>
+        <h1 class="page-title">Novel Idea Generator</h1>
+        <p class="page-subtitle">Synthesize unique problem solutions benchmarked against past winners</p>
       </div>
 
       <div class="gen-form glass-card">
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-folder"></i> Domain</label>
+            <label class="form-label">Domain Selection</label>
             <select id="domainSelect" class="form-select">
-              <option value="">Choose a domain...</option>
-              <option value="Agriculture">🌾 Agriculture</option>
-              <option value="Healthcare">🏥 Healthcare</option>
-              <option value="Education">📚 Education</option>
-              <option value="Governance">🏛️ Governance</option>
-              <option value="Clean Technology">♻️ Clean Technology</option>
-              <option value="Smart Cities">🏙️ Smart Cities</option>
-              <option value="Disaster Management">🚨 Disaster Management</option>
-              <option value="Transportation">🚆 Transportation</option>
-              <option value="Finance">💰 Finance</option>
-              <option value="Cybersecurity">🔐 Cybersecurity</option>
-              <option value="Environment">🌿 Environment</option>
-              <option value="Smart Automation">🤖 Smart Automation</option>
+              <option value="">Choose domain...</option>
+              <option value="Agriculture">Agriculture</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Education">Education</option>
+              <option value="Governance">Governance</option>
+              <option value="Clean Technology">Clean Technology</option>
+              <option value="Smart Cities">Smart Cities</option>
+              <option value="Disaster Management">Disaster Management</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Finance">Finance</option>
+              <option value="Cybersecurity">Cybersecurity</option>
+              <option value="Environment">Environment</option>
+              <option value="Smart Automation">Smart Automation</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-tags"></i> Theme / Focus (optional)</label>
-            <input id="themeInput" class="form-input" type="text" placeholder="e.g. rural women, AI, blockchain..." />
+            <label class="form-label">Focus Area (Optional)</label>
+            <input id="themeInput" class="form-input" type="text" placeholder="e.g. computer vision, rural access, blockchain" />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-list-ol"></i> Number of Ideas: <span id="numIdeasLabel">3</span></label>
+            <label class="form-label">Output Count: <span id="numIdeasLabel">3</span></label>
             <input id="numIdeas" type="range" min="1" max="5" value="3" class="form-range"
               oninput="document.getElementById('numIdeasLabel').textContent = this.value" />
           </div>
           <div class="form-group flex-end">
             <button class="btn-primary btn-large" id="generateIdeasBtn" onclick="generateIdeas()">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Ideas
+              <i class="fa-solid fa-bolt"></i> Generate Proposals
             </button>
           </div>
         </div>
@@ -242,7 +221,7 @@
 
       <div id="ideasLoader" class="loader-card hidden">
         <div class="spinner"></div>
-        <p>AI is crafting novel ideas for you...</p>
+        <p>Synthesizing non-redundant proposals...</p>
       </div>
 
       <div id="ideasGrid" class="ideas-grid"></div>
@@ -253,20 +232,20 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section" id="section-blueprint">
       <div class="page-header">
-        <h1 class="page-title">Blueprint <span class="gradient-text">Builder</span></h1>
-        <p class="page-subtitle">Generate a complete, professional SIH project proposal that impresses judges</p>
+        <h1 class="page-title">Blueprint Builder</h1>
+        <p class="page-subtitle">Generate technical specification documents for hackathon submissions</p>
       </div>
 
       <div id="blueprintForm" class="glass-card">
-        <h3 class="card-title"><i class="fa-solid fa-pen-to-square"></i> Project Details</h3>
+        <div class="card-title"><i class="fa-solid fa-pen"></i> Proposal Configuration</div>
         <div class="form-group">
           <label class="form-label">Project Title *</label>
-          <input id="bp-title" class="form-input" placeholder="e.g. AI-Powered Crop Disease Detector" />
+          <input id="bp-title" class="form-input" placeholder="e.g. Computer Vision Crop Pathology System" />
         </div>
         <div class="form-group">
           <label class="form-label">Domain *</label>
           <select id="bp-domain" class="form-select">
-            <option value="">Choose domain...</option>
+            <option value="">Select domain...</option>
             <option value="Agriculture">Agriculture</option>
             <option value="Healthcare">Healthcare</option>
             <option value="Education">Education</option>
@@ -281,35 +260,35 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Problem Statement *</label>
-          <textarea id="bp-problem" class="form-textarea" rows="3" placeholder="Describe the problem in detail. Who faces it? What is the current situation?"></textarea>
+          <label class="form-label">Problem Definition *</label>
+          <textarea id="bp-problem" class="form-textarea" rows="3" placeholder="Quantify problem scope, affected demographics, and current constraints."></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Proposed Solution *</label>
-          <textarea id="bp-solution" class="form-textarea" rows="3" placeholder="Describe your solution. How does it work? What technologies will you use?"></textarea>
+          <label class="form-label">Proposed Technical Solution *</label>
+          <textarea id="bp-solution" class="form-textarea" rows="3" placeholder="Describe core system architecture, algorithms, and key features."></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Technology Stack (comma-separated)</label>
-          <input id="bp-tech" class="form-input" placeholder="e.g. Python, TensorFlow, React Native, FastAPI, MongoDB" />
+          <label class="form-label">Tech Stack (comma separated)</label>
+          <input id="bp-tech" class="form-input" placeholder="e.g. Python, TensorFlow, FastAPI, PostgreSQL" />
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Team Size</label>
+            <label class="form-label">Team Members</label>
             <input id="bp-team" class="form-input" type="number" value="6" min="1" max="10" />
           </div>
           <div class="form-group">
-            <label class="form-label">Duration (weeks)</label>
+            <label class="form-label">Timeline (Weeks)</label>
             <input id="bp-duration" class="form-input" type="number" value="4" min="1" max="12" />
           </div>
         </div>
         <button class="btn-primary btn-large" id="generateBlueprintBtn" onclick="generateBlueprint()">
-          <i class="fa-solid fa-file-code"></i> Generate Full Blueprint
+          <i class="fa-solid fa-file-code"></i> Generate Architecture Document
         </button>
       </div>
 
       <div id="blueprintLoader" class="loader-card hidden">
         <div class="spinner"></div>
-        <p>AI is building your professional project blueprint...</p>
+        <p>Compiling technical architecture specification...</p>
       </div>
 
       <div id="blueprintOutput" class="hidden"></div>
@@ -320,29 +299,26 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <section class="section" id="section-chat">
       <div class="page-header">
-        <h1 class="page-title">AI <span class="gradient-text">Advisor Chat</span></h1>
-        <p class="page-subtitle">Ask anything about SIH — domains, strategies, tech stacks, winning tips</p>
+        <h1 class="page-title">AI Consultant</h1>
+        <p class="page-subtitle">Interactive queries against historical benchmarks and technical advice</p>
       </div>
 
       <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
           <div class="chat-bubble bot">
-            <div class="bubble-avatar"><i class="fa-solid fa-robot"></i></div>
+            <div class="bubble-avatar"><i class="fa-solid fa-brain"></i></div>
             <div class="bubble-content">
-              <p>👋 Hey! I'm your SIH AI Advisor. I've analyzed 35+ winning projects from 2017-2024.</p>
-              <p style="margin-top:8px">Ask me anything — <strong>which domain to choose, what makes ideas win, tech stack advice,</strong> or request a quick idea for any domain!</p>
+              <p>SIH Advisor System ready. Ask technical questions regarding domain distribution, judge evaluation criteria, or tech stack optimization.</p>
             </div>
           </div>
         </div>
         <div class="chat-suggestions" id="chatSuggestions">
-          <button class="suggestion-chip" onclick="sendSuggestion(this)">Which domain wins most in SIH?</button>
-          <button class="suggestion-chip" onclick="sendSuggestion(this)">Give me a novel idea for healthcare</button>
-          <button class="suggestion-chip" onclick="sendSuggestion(this)">What tech stack should I use?</button>
-          <button class="suggestion-chip" onclick="sendSuggestion(this)">How to make my idea stand out?</button>
-          <button class="suggestion-chip" onclick="sendSuggestion(this)">Tips for SIH presentation</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">Domain distribution analysis</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">Healthcare technical requirements</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">Judge evaluation criteria</button>
         </div>
         <div class="chat-input-bar">
-          <input id="chatInput" class="chat-input" type="text" placeholder="Ask your SIH question..."
+          <input id="chatInput" class="chat-input" type="text" placeholder="Type message..."
             onkeydown="if(event.key==='Enter') sendChatMessage()" />
           <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
             <i class="fa-solid fa-paper-plane"></i>

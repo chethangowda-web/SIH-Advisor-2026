@@ -4,18 +4,18 @@
 const API = 'https://sih-ai-advisor.onrender.com';
 
 const DOMAINS = [
-  { name:'Agriculture',       emoji:'🌾', color:'#22c55e', count: 5 },
-  { name:'Healthcare',        emoji:'🏥', color:'#f43f5e', count: 8 },
-  { name:'Education',         emoji:'📚', color:'#6366f1', count: 4 },
-  { name:'Governance',        emoji:'🏛️', color:'#8b5cf6', count: 5 },
-  { name:'Clean Technology',  emoji:'♻️', color:'#2dd4bf', count: 4 },
-  { name:'Smart Cities',      emoji:'🏙️', color:'#06b6d4', count: 2 },
-  { name:'Disaster Management',emoji:'🚨',color:'#ef4444', count: 3 },
-  { name:'Transportation',    emoji:'🚆', color:'#f59e0b', count: 3 },
-  { name:'Finance',           emoji:'💰', color:'#a3e635', count: 1 },
-  { name:'Cybersecurity',     emoji:'🔐', color:'#818cf8', count: 2 },
-  { name:'Environment',       emoji:'🌿', color:'#34d399', count: 2 },
-  { name:'Smart Automation',  emoji:'🤖', color:'#c084fc', count: 1 },
+  { name:'Agriculture',       count: 5 },
+  { name:'Healthcare',        count: 8 },
+  { name:'Education',         count: 4 },
+  { name:'Governance',        count: 5 },
+  { name:'Clean Technology',  count: 4 },
+  { name:'Smart Cities',      count: 2 },
+  { name:'Disaster Management',count: 3 },
+  { name:'Transportation',    count: 3 },
+  { name:'Finance',           count: 1 },
+  { name:'Cybersecurity',     count: 2 },
+  { name:'Environment',       count: 2 },
+  { name:'Smart Automation',  count: 1 },
 ];
 
 const state = {
@@ -107,11 +107,9 @@ async function loadDashboard() {
 function renderDomains() {
   const grid = $('domainsGrid');
   grid.innerHTML = DOMAINS.map(d => `
-    <div class="domain-card" onclick="quickGenerate('${d.name}')"
-         style="border-top: 3px solid ${d.color}20; hover-border: ${d.color}">
-      <span class="domain-emoji">${d.emoji}</span>
+    <div class="domain-card" onclick="quickGenerate('${d.name}')">
       <div class="domain-name">${d.name}</div>
-      <div class="domain-count">${d.count} winning projects</div>
+      <div class="domain-count">${d.count} Historical Entries</div>
     </div>
   `).join('');
 }
