@@ -28,10 +28,9 @@ const state = {
 const $ = id => document.getElementById(id);
 
 function showToast(msg, type = 'info') {
-  const icons = { success:'✅', error:'❌', info:'ℹ️', warn:'⚠️' };
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  toast.innerHTML = `<span style="font-weight:600;font-size:11px;font-family:var(--font-mono)">[${type.toUpperCase()}]</span> <span>${msg}</span>`;
   $('toastContainer').appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
@@ -234,9 +233,9 @@ function renderTrendDetails(data) {
     hotContainer.innerHTML = data.predicted_hot_domains_2025
       .map((d, i) => `
         <div class="hot-domain-item">
-          <span class="hot-domain-rank">#${i+1}</span>
+          <span class="hot-domain-rank">0${i+1}</span>
           <span class="hot-domain-name">${d}</span>
-          <span class="hot-domain-fire">🔥</span>
+          <span class="tech-chip" style="margin-left:auto;font-size:10px">HIGH TRAJECTORY</span>
         </div>`)
       .join('');
   }
@@ -485,7 +484,7 @@ function renderBlueprint(bp) {
             <div class="feature-card">
               <div class="feature-name">${f.feature || ''}</div>
               <div class="feature-desc">${f.description || ''}</div>
-              ${f.impact ? `<div style="font-size:12px;color:#2dd4bf;margin-top:6px">✨ ${f.impact}</div>` : ''}
+              ${f.impact ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;font-family:var(--font-mono)">IMPACT: ${f.impact}</div>` : ''}
             </div>`).join('')}` : ''}
           <div class="bp-field" style="margin-top:16px">
             <div class="bp-field-label">Unique Value Proposition</div>
