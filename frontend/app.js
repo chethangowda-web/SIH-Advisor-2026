@@ -1,7 +1,7 @@
 'use strict';
 
 // ── Config ───────────────────────────────────────────────────────────
-const API = 'http://localhost:8000';
+const API = 'https://sih-ai-advisor.onrender.com';
 
 const DOMAINS = [
   { name:'Agriculture',       emoji:'🌾', color:'#22c55e', count: 5 },
