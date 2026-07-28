@@ -8,7 +8,6 @@ import json
 from langchain_groq import ChatGroq
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
-from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel, Field
 from typing import Optional
 import config
