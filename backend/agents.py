@@ -40,8 +40,6 @@ class TrendAnalysis(BaseModel):
 # ─────────────────────────── Singleton Loader ────────────────────────────────
 
 _llm: Optional[ChatGroq] = None
-_embedding_model: Optional[SentenceTransformer] = None
-_chroma_collection = None
 
 def get_llm() -> ChatGroq:
     global _llm
