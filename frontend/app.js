@@ -38,13 +38,14 @@ function showToast(msg, type = 'info') {
 function scoreClass(n) { return n >= 8 ? 'high' : n >= 6 ? 'mid' : 'low'; }
 
 async function apiFetch(path, opts = {}) {
-  const res = await fetch(API + path, {
+  const url = (API + path).replace(/([^:]\/)\/+/g, "$1");
+  const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
     ...opts
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail || 'API error');
+    throw new Error(err.detail || 'API request failed');
   }
   return res.json();
 }
