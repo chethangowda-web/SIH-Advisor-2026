@@ -3,98 +3,65 @@
 
 ---
 
-## 🚀 Setup (Do This Once)
+## 🚀 Setup & Execution Guide
 
-### Step 1 — Open PowerShell in the `backend` folder
-```powershell
-cd C:\Users\LENOVO\.gemini\antigravity\scratch\sih-ai-advisor\backend
+### Step 1 — Navigate to the backend directory
+```bash
+cd sih-ai-advisor/backend
 ```
 
 ### Step 2 — Create virtual environment
-```powershell
+```bash
 python -m venv venv
 ```
 
-### Step 3 — Activate it
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-> If you get an error, run this first: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`
+### Step 3 — Activate environment
+- **Windows (PowerShell)**: `.\venv\Scripts\Activate.ps1`
+- **Linux/macOS**: `source venv/bin/activate`
 
-### Step 4 — Install all packages
-```powershell
+### Step 4 — Install dependencies
+```bash
 pip install -r requirements.txt
 ```
-> ⏳ This takes 5-10 minutes (downloads PyTorch, transformers etc.)
 
-### Step 5 — Build the AI database (run ONCE)
-```powershell
+### Step 5 — Build vector database index
+```bash
 python data_pipeline.py
 ```
-> This embeds all SIH projects into ChromaDB. Takes ~2 minutes.
 
-### Step 6 — Start the server
-```powershell
+### Step 6 — Start API server
+```bash
 python main.py
 ```
-> Server runs at: http://localhost:8000
-> API docs at:    http://localhost:8000/docs
+> Server runs at: http://localhost:8000  
+> API Documentation: http://localhost:8000/docs
 
 ---
 
-## 🖥️ Open the Frontend
-
-Just open this file in your browser:
-```
-C:\Users\LENOVO\.gemini\antigravity\scratch\sih-ai-advisor\frontend\index.html
-```
-
-**OR** use VS Code Live Server (recommended) for best experience.
-
----
-
-## 📁 Project Structure
+## 📁 Repository Structure
 
 ```
 sih-ai-advisor/
 ├── backend/
-│   ├── main.py              ← FastAPI server
-│   ├── agents.py            ← AI agents (Groq LLM + ChromaDB RAG)
-│   ├── chains.py            ← Blueprint generator chain
-│   ├── data_pipeline.py     ← Embed SIH data into ChromaDB
-│   ├── config.py            ← Settings
-│   ├── .env                 ← Your API keys (don't share!)
-│   ├── requirements.txt     ← Python packages
-│   ├── setup.bat            ← One-click setup for Windows
+│   ├── main.py              ← FastAPI REST API server
+│   ├── agents.py            ← LangChain & ChromaDB RAG agents
+│   ├── chains.py            ← Proposal blueprint generator chain
+│   ├── data_pipeline.py     ← Vector embedding & indexing script
+│   ├── config.py            ← Environment configuration
+│   ├── requirements.txt     ← Python package dependencies
 │   └── data/
-│       └── sih_winners.json ← 35+ SIH projects (2017-2024)
+│       └── sih_winners.json ← Historical dataset of winning projects
 └── frontend/
-    ├── index.html           ← Main SPA
-    ├── styles.css           ← Beautiful dark theme
-    └── app.js               ← All JavaScript logic
+    ├── index.html           ← Single Page Application UI
+    ├── styles.css           ← Kinetic high-contrast design system
+    └── app.js               ← Client-side application logic & API integration
 ```
 
 ---
 
-## 🔥 Features
+## 🛠️ Tech Stack & Architecture
 
-| Feature | Description |
-|---------|-------------|
-| 📊 Dashboard | Stats, domains, quick actions |
-| 📈 Trend Analysis | AI analyzes winning patterns using Groq LLM |
-| 💡 Idea Generator | Novel ideas by domain with novelty/feasibility/impact scores |
-| 📋 Blueprint Builder | Full professional project proposal (8 sections) |
-| 🤖 AI Chat | Ask anything about SIH strategy and winning tips |
-
----
-
-## 🛠️ Tech Stack
-
-**Backend**: Python · FastAPI · LangChain · Groq (Llama 3.3 70B) · ChromaDB · Sentence Transformers  
-**Frontend**: Vanilla HTML/CSS/JS · Chart.js
-
----
-
-## ⚡ Quick Tip
-After `python main.py` starts, the status dot in the sidebar turns **green** ✅.  
-All features become available immediately!
+- **AI & RAG**: LangChain · ChromaDB · Sentence-Transformers (`all-MiniLM-L6-v2`) · Groq API (Llama 3.3 70B)
+- **Backend**: Python 3.11 · FastAPI · Uvicorn · Gunicorn
+- **Frontend**: Vanilla JS · HTML5 Canvas · CSS3 Kinetic Design System · Chart.js
+- **Deployment**: Render (Backend API) · Vercel (Frontend Application)
