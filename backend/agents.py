@@ -56,39 +56,46 @@ def get_llm() -> ChatGroq:
         )
     return _llm
 
-def get_embedding_model() -> SentenceTransformer:
-    global _embedding_model
-    if _embedding_model is None:
-        _embedding_model = SentenceTransformer(config.EMBEDDING_MODEL)
-    return _embedding_model
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-def get_chroma_collection():
-    global _chroma_collection
-    if _chroma_collection is None:
-        client = chromadb.PersistentClient(path=config.CHROMA_DB_PATH)
-        _chroma_collection = client.get_collection(config.CHROMA_COLLECTION_NAME)
-    return _chroma_collection
+_tfidf_vectorizer = None
+_tfidf_matrix = None
+_documents_list = []
+_metadatas_list = []
 
-# ─────────────────────────── RAG Retrieval ───────────────────────────────────
+def get_all_projects_data():
+    global _documents_list, _metadatas_list, _tfidf_vectorizer, _tfidf_matrix
+    if not _documents_list:
+        with open(config.DATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for project in data:
+            doc_text = f"Title: {project['title']} | Year: {project['year']} | Domain: {project['domain']} | Problem: {project['problem_statement']} | Solution: {project['solution']} | Tech: {', '.join(project['technologies'])}"
+            _documents_list.append(doc_text)
+            _metadatas_list.append({
+                "id": project["id"],
+                "year": project["year"],
+                "title": project["title"],
+                "domain": project["domain"]
+            })
+        _tfidf_vectorizer = TfidfVectorizer().fit(_documents_list)
+        _tfidf_matrix = _tfidf_vectorizer.transform(_documents_list)
+    return _documents_list, _metadatas_list, _tfidf_vectorizer, _tfidf_matrix
 
-def retrieve_similar_projects(query: str, n_results: int = 8) -> list[dict]:
-    """Retrieve the most similar SIH projects from ChromaDB."""
-    model = get_embedding_model()
-    embedding = model.encode(query).tolist()
-    collection = get_chroma_collection()
+def retrieve_similar_projects(query: str, n_results: int = 6) -> list[dict]:
+    """Lightweight TF-IDF similarity search (0MB PyTorch RAM)."""
+    docs, metas, vectorizer, matrix = get_all_projects_data()
+    query_vec = vectorizer.transform([query])
+    similarities = cosine_similarity(query_vec, matrix)[0]
     
-    results = collection.query(
-        query_embeddings=[embedding],
-        n_results=min(n_results, collection.count()),
-        include=["documents", "metadatas", "distances"]
-    )
+    top_indices = similarities.argsort()[-n_results:][::-1]
     
     projects = []
-    for i, doc in enumerate(results["documents"][0]):
+    for idx in top_indices:
         projects.append({
-            "document": doc,
-            "metadata": results["metadatas"][0][i],
-            "similarity": 1 - results["distances"][0][i]
+            "document": docs[idx],
+            "metadata": metas[idx],
+            "similarity": float(similarities[idx])
         })
     return projects
 

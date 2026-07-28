@@ -2,12 +2,10 @@ services:
   - type: web
     name: sih-ai-advisor-backend
     env: python
-    buildCommand: "pip install -r requirements.txt && python data_pipeline.py"
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn -w 2 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:$PORT"
     envVars:
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL
         value: llama-3.3-70b-versatile
-      - key: EMBEDDING_MODEL
-        value: all-MiniLM-L6-v2
