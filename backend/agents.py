@@ -5,7 +5,6 @@ Handles: Trend Analysis, Gap Finding, Idea Generation, Blueprint Creation.
 """
 
 import json
-import chromadb
 from langchain_groq import ChatGroq
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
