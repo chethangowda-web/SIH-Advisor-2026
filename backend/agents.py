@@ -68,15 +68,6 @@ def get_llm(max_tokens: Optional[int] = None, json_mode: bool = False) -> ChatGr
     return _llms[key]
 # ─────────────────────────── Resilient LLM Invoker ───────────────────────────
 
-_THINK_RE = re.compile(r"\s*<think>.*?</think>\s*", re.DOTALL)
-
-def _strip_think(text: Optional[str]) -> str:
-    """Remove <think>...</think> reasoning blocks that reasoning models (e.g.
-    qwen3.6) emit, so users see a clean, direct answer."""
-    if not text:
-        return text or ""
-    return _THINK_RE.sub("", text).strip()
-
 def _is_rate_limit(exc: Exception) -> bool:
     """True when the error is a Groq/OpenAI rate-limit or quota exhaustion."""
     sc = getattr(exc, "status_code", None)
