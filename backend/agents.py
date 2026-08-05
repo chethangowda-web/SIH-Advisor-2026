@@ -68,6 +68,15 @@ def get_llm(max_tokens: Optional[int] = None, json_mode: bool = False) -> ChatGr
     return _llms[key]
 # ─────────────────────────── Resilient LLM Invoker ───────────────────────────
 
+_THINK_RE = re.compile(r"\s*<think>.*?</think>\s*", re.DOTALL)
+
+def _strip_think(text: Optional[str]) -> str:
+    """Remove <think>...</think> reasoning blocks that reasoning models (e.g.
+    qwen3.6) emit, so users see a clean, direct answer."""
+    if not text:
+        return text or ""
+    return _THINK_RE.sub("", text).strip()
+
 def _is_rate_limit(exc: Exception) -> bool:
     """True when the error is a Groq/OpenAI rate-limit or quota exhaustion."""
     sc = getattr(exc, "status_code", None)
@@ -388,7 +397,7 @@ async def generate_ideas(
     })
     
     try:
-        clean = response.strip().strip("```json").strip("```").strip()
+        clean = _strip_reasoning(response).strip("```json").strip("```").strip()
         start = clean.find("[")
         end = clean.rfind("]") + 1
         ideas = json.loads(clean[start:end])
@@ -434,7 +443,7 @@ async def chat_with_advisor(message: str, history: list[dict]) -> str:
     chain = prompt | llm | StrOutputParser()
     try:
         response = await _invoke_with_retry(chain.ainvoke, {})
-        return response
+        return _strip_reasoning(response)
     except LLMQuotaError:
         return ("I've hit my AI service's usage limit for the moment — it resets "
                 "automatically in a little while. Please try again soon; I'll be "

@@ -8,12 +8,13 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import json
 import config
-from agents import get_llm, retrieve_similar_projects, _invoke_with_retry
+from agents import get_llm, retrieve_similar_projects, _invoke_with_retry, _strip_reasoning
 
 def _extract_json(text: str) -> dict:
-    """Extract a JSON object from a model response, tolerating code fences and
-    stray leading/trailing text. Raises ValueError if no valid object is found."""
-    text = (text or "").strip()
+    """Extract a JSON object from a model response, tolerating code fences,
+    reasoning blocks and stray leading/trailing text. Raises ValueError if no
+    valid object is found."""
+    text = _strip_reasoning(text or "")
     if text.startswith("```"):
         text = text.strip("`")
         if text.lower().startswith("json"):
