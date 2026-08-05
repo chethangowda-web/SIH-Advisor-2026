@@ -4,12 +4,17 @@ FastAPI server — all API endpoints for the SIH AI Advisor.
 """
 
 import os
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 import agents
 import chains
+
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR.parent / "frontend"
 
 app = FastAPI(
     title="SIH AI Advisor API",
@@ -51,21 +56,10 @@ class GapRequest(BaseModel):
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
 
-@app.get("/")
-def root():
-    return {
-        "message": "🚀 SIH AI Advisor API is running!",
-        "docs": "/docs",
-        "endpoints": [
-            "GET  /api/stats",
-            "GET  /api/domains",
-            "GET  /api/trends",
-            "POST /api/generate-ideas",
-            "POST /api/blueprint",
-            "POST /api/find-gaps",
-            "POST /api/chat",
-        ]
-    }
+@app.get("/api/health")
+def health():
+    """Health check used by the frontend status indicator."""
+    return {"status": "ok"}
 
 @app.get("/api/stats")
 def get_stats():
@@ -161,6 +155,14 @@ async def chat(request: ChatMessage):
         return {"success": True, "response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ─── Serve Static Frontend (single-service deploy) ───────────────────────────
+# Mount the SPA at / so one Railway service + one domain serves UI + API.
+# API routes are registered first and take precedence over the mount.
+if FRONTEND_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
+else:
+    print(f"[warn] Frontend directory not found at {FRONTEND_DIR}")
 
 # ─── Server Entry Point ───────────────────────────────────────────────────────
 

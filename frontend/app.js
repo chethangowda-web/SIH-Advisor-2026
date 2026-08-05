@@ -1,7 +1,11 @@
 'use strict';
 
 // ── Config ───────────────────────────────────────────────────────────
-const API = 'http://localhost:8000';
+// In production the API is served same-origin by the backend; in local
+// development the frontend runs on :8080 and calls the API on :8000.
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8000'
+  : '';
 
 const DOMAINS = [
   { name:'Agriculture',       count: 5 },
@@ -79,7 +83,7 @@ async function checkStatus() {
   const dot  = $('statusDot');
   const text = $('statusText');
   try {
-    const data = await apiFetch('/');
+    const data = await apiFetch('/api/health');
     dot.className  = 'status-dot online';
     text.textContent = 'Backend Online';
   } catch {
