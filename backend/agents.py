@@ -42,6 +42,9 @@ class TrendAnalysis(BaseModel):
 
 # ─────────────────────────── Singleton Loader ────────────────────────────────
 
+class LLMQuotaError(RuntimeError):
+    """Raised when the LLM provider's usage limit (daily token quota, etc.) is hit."""
+
 _llms: dict = {}
 
 def get_llm(max_tokens: Optional[int] = None) -> ChatGroq:
@@ -88,8 +91,8 @@ async def _invoke_with_retry(call, *args, attempts: int = 3, base_delay: float =
         except Exception as e:
             last_err = e
             if _is_rate_limit(e):
-                raise RuntimeError(
-                    "The AI service's free daily limit has been reached. Please try again later."
+                raise LLMQuotaError(
+                    "The AI service's usage limit was reached. Please try again later."
                 ) from e
             delay = base_delay * (2 ** i) + random.random()
             await asyncio.sleep(delay)
@@ -142,16 +145,16 @@ def retrieve_similar_projects(query: str, n_results: int = 6) -> list[dict]:
     return projects
 
 def get_all_projects_summary() -> str:
-    """Get a summary of all projects for trend analysis."""
+    """Get a compact summary of projects for trend analysis. Kept short to limit
+    LLM input tokens (and therefore daily Groq quota burn)."""
     with open(config.DATA_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
-    
+
     summaries = []
-    for p in data:
+    for p in data[:28]:
         summaries.append(
-            f"[{p['id']}] {p['year']} | {p['domain']} | {p['title']} | "
-            f"Tech: {', '.join(p['technologies'][:3])} | "
-            f"Impact: {p['impact'][:80]}"
+            f"{p['year']} | {p['domain']} | {p['title']} | "
+            f"Tech: {', '.join(p['technologies'][:3])}"
         )
     return "\n".join(summaries)
 
@@ -304,7 +307,7 @@ async def generate_ideas(
     num_ideas: int = 3
 ) -> list[dict]:
     """Generate novel SIH project ideas with novelty and feasibility scoring."""
-    llm = get_llm()
+    llm = get_llm(max_tokens=3500)
     
     # RAG: retrieve similar past projects
     query = f"{domain} {theme} India problem solution"
@@ -385,7 +388,7 @@ async def generate_ideas(
 
 async def chat_with_advisor(message: str, history: list[dict]) -> str:
     """Chat with the SIH advisor using RAG context."""
-    llm = get_llm()
+    llm = get_llm(max_tokens=1000)
     
     # Retrieve relevant projects
     similar = retrieve_similar_projects(message, n_results=4)
@@ -417,8 +420,16 @@ async def chat_with_advisor(message: str, history: list[dict]) -> str:
     
     prompt = ChatPromptTemplate.from_messages(messages)
     chain = prompt | llm | StrOutputParser()
-    response = await _invoke_with_retry(chain.ainvoke, {})
-    return response
+    try:
+        response = await _invoke_with_retry(chain.ainvoke, {})
+        return response
+    except LLMQuotaError:
+        return ("I've hit my AI service's usage limit for the moment — it resets "
+                "automatically in a little while. Please try again soon; I'll be "
+                "ready to help with SIH ideas then. 🙂")
+    except Exception:
+        return ("I'm having trouble reaching the AI service right now. "
+                "Please try again in a moment.")
 
 # ─────────────────────────── Statistics ──────────────────────────────────────
 
