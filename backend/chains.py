@@ -8,7 +8,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import json
 import config
-from agents import get_llm, retrieve_similar_projects
+from agents import get_llm, retrieve_similar_projects, _invoke_with_retry
 
 async def generate_blueprint(
     title: str,
@@ -149,7 +149,7 @@ Return this EXACT JSON structure:
     ])
     
     chain = prompt | llm | StrOutputParser()
-    response = await chain.ainvoke({
+    response = await _invoke_with_retry(chain.ainvoke, {
         "title": title,
         "domain": domain,
         "problem_statement": problem_statement,

@@ -140,10 +140,11 @@ async function loadTrends(force = false) {
     $('trendsContent').classList.remove('hidden');
   } catch (err) {
     $('trendsLoader').innerHTML = `
-      <div style="font-size:40px">⚠️</div>
-      <p style="color:#f43f5e">Backend not connected. Start the backend first!</p>
-      <p style="font-size:12px;color:#55556a">Run: cd backend → setup.bat</p>`;
-    showToast('Backend offline. Start the server first.', 'error');
+      <div style="font-size:40px">🌤️</div>
+      <p style="color:#f43f5e">Trend analysis is busy right now.</p>
+      <p style="font-size:13px;color:#55556a">We couldn't load trends just now. Please retry in a moment.</p>
+      <button onclick="loadTrends(true)" style="margin-top:14px;padding:10px 22px;border:none;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#22d3ee);color:#fff;cursor:pointer;font-weight:600">Retry</button>`;
+    showToast('Could not load trends. Try again in a moment.', 'error');
   }
 }
 
@@ -653,7 +654,7 @@ async function sendChatMessage() {
     state.chatHistory.push({ role: 'assistant', content: res.response });
   } catch (err) {
     hideTyping();
-    appendMessage('bot', `⚠️ **Backend not connected!**\n\nPlease start the backend server first:\n1. Open a new terminal\n2. cd to \`backend\` folder\n3. Run \`setup.bat\``);
+    appendMessage('bot', `⚠️ **Couldn't generate a response just now.**\n\nThe AI service may be busy or temporarily unavailable. Please try again in a moment.`);
   }
 }
 

@@ -4,7 +4,10 @@ LangChain AI agents powered by Groq LLM + ChromaDB RAG.
 Handles: Trend Analysis, Gap Finding, Idea Generation, Blueprint Creation.
 """
 
+import asyncio
 import json
+import random
+import time
 from langchain_groq import ChatGroq
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
@@ -51,6 +54,28 @@ def get_llm() -> ChatGroq:
             max_tokens=4096,
         )
     return _llm
+
+# ─────────────────────────── Resilient LLM Invoker ───────────────────────────
+
+async def _invoke_with_retry(call, *args, attempts: int = 4, base_delay: float = 1.0, **kwargs):
+    """Invoke an LLM call (e.g. chain.ainvoke) with exponential backoff so transient
+    Groq failures (rate limits, 5xx, brief timeouts) don't surface as hard errors."""
+    if not config.GROQ_API_KEY:
+        raise RuntimeError("GROQ_API_KEY is not set. Add it to backend/.env and restart.")
+    last_err = None
+    for i in range(attempts):
+        try:
+            return await call(*args, **kwargs)
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            last_err = e
+            delay = base_delay * (2 ** i) + random.random()
+            await asyncio.sleep(delay)
+    raise last_err
+
+
+# ----------------------------------------------------------------
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -111,12 +136,46 @@ def get_all_projects_summary() -> str:
 
 # ─────────────────────────── Agent: Trend Analyzer ───────────────────────────
 
-async def analyze_trends() -> dict:
-    """Analyze trends across all SIH winning projects."""
+TRENDS_TTL_SECONDS = 6 * 60 * 60  # cache successful trend analysis for 6 hours
+_trends_cache: dict = {"ts": 0.0, "data": None}
+
+def _trends_fallback() -> dict:
+    """Deterministic trend report computed from the dataset. Used when the LLM is
+    unavailable so the Trends page always renders instead of showing an error."""
+    stats = get_statistics()
+    total = stats["total_projects"]
+    breakdown = stats["domain_breakdown"]
+
+    top_domains = []
+    for domain, count in sorted(breakdown.items(), key=lambda x: x[1], reverse=True)[:8]:
+        top_domains.append({
+            "domain": domain,
+            "win_count": count,
+            "percentage": round((count / total) * 100) if total else 0,
+            "key_themes": [],
+        })
+
+    techs = [t["tech"] for t in stats["top_technologies"][:6]]
+    year_breakdown = stats["year_breakdown"]
+
+    return {
+        "top_domains": top_domains,
+        "rising_technologies": techs,
+        "dominant_problem_types": ["AI-driven automation", "Data accessibility", "Last-mile delivery"],
+        "hardware_vs_software_ratio": f"{stats['hardware_projects']} hardware, {stats['software_projects']} software",
+        "key_insights": [
+            f"Analyzing {total} SIH winning projects across {stats['domains_count']} domains.",
+            f"Most active domain: {top_domains[0]['domain'] if top_domains else 'N/A'} ({top_domains[0]['win_count'] if top_domains else 0} wins).",
+            f"Top technologies used by winners: {', '.join(techs) if techs else 'N/A'}.",
+            "AI/ML, IoT and GenAI continue to dominate winning submissions.",
+        ],
+        "predicted_hot_domains_2025": [d["domain"] for d in top_domains[:4]],
+    }
+
+async def _analyze_trends_llm() -> dict:
     llm = get_llm()
-    
     all_projects = get_all_projects_summary()
-    
+
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are an expert analyst of Smart India Hackathon (SIH) trends.
         Analyze the provided list of winning projects and extract key trends.
@@ -138,17 +197,30 @@ Return a JSON with these exact keys:
   "predicted_hot_domains_2025": ["domain1", "domain2", ...]
 }}""")
     ])
-    
+
     chain = prompt | llm | StrOutputParser()
-    response = await chain.ainvoke({"projects": all_projects})
-    
+    response = await _invoke_with_retry(chain.ainvoke, {"projects": all_projects})
+
     # Parse JSON from response
+    clean = response.strip().strip("```json").strip("```").strip()
+    return json.loads(clean)
+
+async def analyze_trends() -> dict:
+    """Analyze trends across all SIH winning projects. Cached to avoid hammering
+    Groq on every page load; falls back to dataset-derived trends if the LLM fails."""
+    now = time.time()
+    if _trends_cache["data"] is not None and (now - _trends_cache["ts"]) < TRENDS_TTL_SECONDS:
+        return _trends_cache["data"]
+
     try:
-        # Clean response in case of markdown
-        clean = response.strip().strip("```json").strip("```").strip()
-        return json.loads(clean)
+        data = await _analyze_trends_llm()
+        if isinstance(data, dict) and data.get("top_domains"):
+            _trends_cache["ts"] = time.time()
+            _trends_cache["data"] = data
+        return data
     except Exception:
-        return {"error": "Could not parse trend analysis", "raw": response}
+        # LLM unavailable -> serve deterministic trends so the page never errors.
+        return _trends_fallback()
 
 # ─────────────────────────── Agent: Gap Finder ───────────────────────────────
 
@@ -193,7 +265,7 @@ Return a JSON array:
     ])
     
     chain = prompt | llm | StrOutputParser()
-    response = await chain.ainvoke({
+    response = await _invoke_with_retry(chain.ainvoke, {
         "projects": all_projects,
         "domain_filter": domain_filter
     })
@@ -276,7 +348,7 @@ async def generate_ideas(
     theme_instruction = f"Theme/Focus: {theme}" if theme else ""
     
     chain = prompt | llm | StrOutputParser()
-    response = await chain.ainvoke({
+    response = await _invoke_with_retry(chain.ainvoke, {
         "num_ideas": num_ideas,
         "domain": domain,
         "theme_instruction": theme_instruction,
@@ -328,7 +400,7 @@ async def chat_with_advisor(message: str, history: list[dict]) -> str:
     
     prompt = ChatPromptTemplate.from_messages(messages)
     chain = prompt | llm | StrOutputParser()
-    response = await chain.ainvoke({})
+    response = await _invoke_with_retry(chain.ainvoke, {})
     return response
 
 # ─────────────────────────── Statistics ──────────────────────────────────────

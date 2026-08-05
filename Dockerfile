@@ -23,7 +23,7 @@ WORKDIR /app/backend
 
 EXPOSE 8000
 
-# Build the vector DB on boot if missing, then start the API server.
-# The /data volume persists the ChromaDB index across redeploys.
-ENV CHROMA_DB_PATH_DEFAULT=./chroma_db
-CMD ["sh", "-c", "DB=${CHROMA_DB_PATH:-${CHROMA_DB_PATH_DEFAULT}}; if [ ! -d \"$DB\" ] || [ -z \"$(ls -A \"$DB\" 2>/dev/null)\" ]; then python data_pipeline.py; fi && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start the API server directly. The app's RAG uses scikit-learn TF-IDF over the
+# JSON dataset (no ChromaDB needed at boot), so we skip the heavy embedding
+# pipeline for fast, reliable cold starts.
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}

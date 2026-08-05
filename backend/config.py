@@ -20,6 +20,9 @@ DATA_PATH: str = os.getenv("DATA_PATH", "./data/sih_winners.json")
 # Server Config
 PORT: int = int(os.getenv("PORT", 8000))
 
-# Validate
+# Do NOT crash at import time when the key is missing. The server must still boot
+# so the UI and static endpoints work; LLM calls surface a clear error at runtime
+# (and main.py returns a friendly JSON message instead of a bare 500).
 if not GROQ_API_KEY:
-    raise ValueError("GROQ_API_KEY not set in .env file!")
+    print("[warn] GROQ_API_KEY is not set. LLM-powered endpoints will report a clear "
+          "error until you add it to your .env file. UI, health and data endpoints still work.")

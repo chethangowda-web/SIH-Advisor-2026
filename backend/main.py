@@ -4,6 +4,7 @@ FastAPI server — all API endpoints for the SIH AI Advisor.
 """
 
 import os
+import asyncio
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +16,11 @@ import chains
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
+
+def _as_error(exc: Exception, default: str = "Something went wrong. Please try again.") -> dict:
+    """Build a friendly, JSON-safe error (also swallows client cancellations/timeouts
+    that normally produce a bare, empty 500 body)."""
+    return {"success": False, "error": str(exc) if str(exc) else default}
 
 app = FastAPI(
     title="SIH AI Advisor API",
@@ -97,8 +103,10 @@ async def get_trends():
     try:
         trends = await agents.analyze_trends()
         return {"success": True, "data": trends}
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=500, detail="Trend analysis was interrupted. Please try again.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e) or "Trend analysis failed. Please try again.")
 
 @app.post("/api/generate-ideas")
 async def generate_ideas(request: IdeaRequest):
@@ -115,6 +123,8 @@ async def generate_ideas(request: IdeaRequest):
         return {"success": True, "domain": request.domain, "ideas": ideas}
     except HTTPException:
         raise
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=500, detail="Idea generation was interrupted. Please try again.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -132,6 +142,8 @@ async def create_blueprint(request: BlueprintRequest):
             duration_weeks=request.duration_weeks
         )
         return {"success": True, "blueprint": blueprint}
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=500, detail="Blueprint generation was interrupted. Please try again.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -141,6 +153,8 @@ async def find_gaps(request: GapRequest):
     try:
         gaps = await agents.find_gaps(domain=request.domain)
         return {"success": True, "domain": request.domain, "gaps": gaps}
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=500, detail="Gap analysis was interrupted. Please try again.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -153,6 +167,8 @@ async def chat(request: ChatMessage):
             history=request.history
         )
         return {"success": True, "response": response}
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=500, detail="The assistant timed out. Please try again.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
