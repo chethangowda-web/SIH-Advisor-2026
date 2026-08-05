@@ -7,6 +7,7 @@ Handles: Trend Analysis, Gap Finding, Idea Generation, Blueprint Creation.
 import asyncio
 import json
 import random
+import re
 import time
 from langchain_groq import ChatGroq
 from langchain.prompts import ChatPromptTemplate
@@ -46,21 +47,25 @@ class LLMQuotaError(RuntimeError):
     """Raised when the LLM provider's usage limit (daily token quota, etc.) is hit."""
 
 _llms: dict = {}
-
-def get_llm(max_tokens: Optional[int] = None) -> ChatGroq:
-    """Return a cached ChatGroq instance. Different max_tokens values get their own
-    instance so we can cap token burn per endpoint (chat is small, blueprints big)."""
+def get_llm(max_tokens: Optional[int] = None, json_mode: bool = False) -> ChatGroq:
+    """Return a cached ChatGroq instance. Different max_tokens/json_mode values get their
+    own instance so we can cap token burn per endpoint (chat is small, blueprints big)
+    and force strict JSON output where needed."""
     global _llms
     mt = max_tokens if max_tokens else 4096
-    if mt not in _llms:
-        _llms[mt] = ChatGroq(
-            api_key=config.GROQ_API_KEY,
-            model=config.GROQ_MODEL,
-            temperature=0.7,
-            max_tokens=mt,
-        )
-    return _llms[mt]
-
+    key = (mt, json_mode)
+    if key not in _llms:
+        kwargs = {
+            "api_key": config.GROQ_API_KEY,
+            "model": config.GROQ_MODEL,
+            "temperature": 0.7,
+            "max_tokens": mt,
+        }
+        if json_mode:
+            # Force the provider to return strict JSON (reduces truncation/parse errors).
+            kwargs["model_kwargs"] = {"response_format": {"type": "json_object"}}
+        _llms[key] = ChatGroq(**kwargs)
+    return _llms[key]
 # ─────────────────────────── Resilient LLM Invoker ───────────────────────────
 
 def _is_rate_limit(exc: Exception) -> bool:
@@ -73,6 +78,13 @@ def _is_rate_limit(exc: Exception) -> bool:
         if marker in text:
             return True
     return False
+
+def _strip_reasoning(text: str) -> str:
+    """Remove <think>...</think> reasoning blocks that reasoning models (e.g.
+    Qwen3, gpt-oss) prepend to their answers. Without this, JSON parsing breaks
+    and chat shows the model's internal monologue to users."""
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
+    return text.strip()
 
 async def _invoke_with_retry(call, *args, attempts: int = 3, base_delay: float = 1.0, **kwargs):
     """Invoke an LLM call (e.g. chain.ainvoke) with exponential backoff so transient
@@ -197,7 +209,7 @@ def _trends_fallback() -> dict:
     }
 
 async def _analyze_trends_llm() -> dict:
-    llm = get_llm(max_tokens=1500)
+    llm = get_llm(max_tokens=1500, json_mode=True)
     all_projects = get_all_projects_summary()
 
     prompt = ChatPromptTemplate.from_messages([
@@ -246,7 +258,7 @@ async def analyze_trends() -> dict:
 
 async def find_gaps(domain: str = "all") -> list[dict]:
     """Find unsolved problem spaces in SIH history."""
-    llm = get_llm(max_tokens=2000)
+    llm = get_llm(max_tokens=2000, json_mode=True)
     
     all_projects = get_all_projects_summary()
     
@@ -291,7 +303,7 @@ Return a JSON array:
     })
     
     try:
-        clean = response.strip().strip("```json").strip("```").strip()
+        clean = _strip_reasoning(response).strip("```json").strip("```").strip()
         # Find JSON array
         start = clean.find("[")
         end = clean.rfind("]") + 1
@@ -307,7 +319,7 @@ async def generate_ideas(
     num_ideas: int = 3
 ) -> list[dict]:
     """Generate novel SIH project ideas with novelty and feasibility scoring."""
-    llm = get_llm(max_tokens=3500)
+    llm = get_llm(max_tokens=3500, json_mode=True)
     
     # RAG: retrieve similar past projects
     query = f"{domain} {theme} India problem solution"

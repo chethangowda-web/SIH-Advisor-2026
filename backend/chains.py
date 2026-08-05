@@ -10,6 +10,20 @@ import json
 import config
 from agents import get_llm, retrieve_similar_projects, _invoke_with_retry
 
+def _extract_json(text: str) -> dict:
+    """Extract a JSON object from a model response, tolerating code fences and
+    stray leading/trailing text. Raises ValueError if no valid object is found."""
+    text = (text or "").strip()
+    if text.startswith("```"):
+        text = text.strip("`")
+        if text.lower().startswith("json"):
+            text = text[4:].strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        raise ValueError("No JSON object found in model response")
+    return json.loads(text[start:end + 1])
+
 async def generate_blueprint(
     title: str,
     problem_statement: str,
@@ -23,7 +37,9 @@ async def generate_blueprint(
     Generate a full professional project blueprint for a SIH submission.
     Returns structured blueprint with all sections.
     """
-    llm = get_llm()
+    # Blueprints are large — give the model plenty of output room and force strict
+    # JSON so we don't hit the truncation/malformed-JSON failures seen before.
+    llm = get_llm(max_tokens=8000, json_mode=True)
     
     # RAG: Get similar projects for reference
     query = f"{title} {domain} {problem_statement}"
@@ -149,24 +165,26 @@ Return this EXACT JSON structure:
     ])
     
     chain = prompt | llm | StrOutputParser()
-    response = await _invoke_with_retry(chain.ainvoke, {
-        "title": title,
-        "domain": domain,
-        "problem_statement": problem_statement,
-        "solution": solution,
-        "tech_stack": tech_stack,
-        "team_size": team_size,
-        "duration_weeks": duration_weeks,
-        "references": references
-    })
-    
-    try:
-        clean = response.strip().strip("```json").strip("```").strip()
-        start = clean.find("{")
-        end = clean.rfind("}") + 1
-        return json.loads(clean[start:end])
-    except Exception as e:
-        return {
-            "error": f"Blueprint generation failed: {str(e)}",
-            "raw_response": response[:1000]
-        }
+    last_error = None
+    last_response = ""
+    for attempt in range(2):
+        try:
+            response = await _invoke_with_retry(chain.ainvoke, {
+                "title": title,
+                "domain": domain,
+                "problem_statement": problem_statement,
+                "solution": solution,
+                "tech_stack": tech_stack,
+                "team_size": team_size,
+                "duration_weeks": duration_weeks,
+                "references": references
+            })
+            last_response = response or ""
+            return _extract_json(last_response)
+        except Exception as e:
+            last_error = e
+
+    return {
+        "error": "Blueprint generation failed. Please try again in a moment.",
+        "raw_response": last_response[:1000],
+    }
