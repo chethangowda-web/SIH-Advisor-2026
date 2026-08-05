@@ -4,6 +4,8 @@
 
 **SIH Aurora** is a full-stack RAG application that helps SIH teams win. It indexes years of Smart India Hackathon winners into a vector database, then lets you explore trends, synthesize original proposals, and generate production-ready blueprint documents.
 
+**Live demo** → [sih-advisor-2026-production.up.railway.app](https://sih-advisor-2026-production.up.railway.app) · API docs at `/docs`
+
 ---
 
 ## Features
