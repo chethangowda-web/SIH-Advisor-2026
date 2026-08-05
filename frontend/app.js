@@ -1,7 +1,7 @@
 'use strict';
 
 // ── Config ───────────────────────────────────────────────────────────
-const API = 'https://sih-ai-advisor.onrender.com';
+const API = 'http://localhost:8000';
 
 const DOMAINS = [
   { name:'Agriculture',       count: 5 },
@@ -155,9 +155,9 @@ function renderTrendCharts(data) {
           label: 'Winning Projects',
           data: data.top_domains.map(d => d.win_count),
           backgroundColor: [
-            'rgba(99,102,241,0.7)','rgba(139,92,246,0.7)','rgba(45,212,191,0.7)',
-            'rgba(251,191,36,0.7)','rgba(244,63,94,0.7)','rgba(34,197,94,0.7)',
-            'rgba(6,182,212,0.7)','rgba(248,113,113,0.7)',
+            'rgba(139,92,246,0.85)','rgba(34,211,238,0.85)','rgba(52,211,153,0.85)',
+            'rgba(251,191,36,0.85)','rgba(251,113,133,0.85)','rgba(99,102,241,0.85)',
+            'rgba(45,212,191,0.85)','rgba(251,146,60,0.85)',
           ],
           borderRadius: 8, borderWidth: 0,
         }],
@@ -165,8 +165,8 @@ function renderTrendCharts(data) {
       options: {
         responsive: true, plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9090b8' } },
-          y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9090b8', stepSize: 1 } },
+          x: { grid: { color: 'rgba(148,163,255,0.07)' }, ticks: { color: '#9aa6c4' } },
+          y: { grid: { color: 'rgba(148,163,255,0.07)' }, ticks: { color: '#9aa6c4', stepSize: 1 } },
         },
       }
     });
@@ -182,17 +182,17 @@ function renderTrendCharts(data) {
         datasets: [{
           label: 'Projects',
           data: [2,3,3,3,4,5,7,8],
-          borderColor: 'rgba(99,102,241,1)',
-          backgroundColor: 'rgba(99,102,241,0.1)',
-          fill: true, tension: 0.4, pointBackgroundColor: '#6366f1',
+          borderColor: 'rgba(34,211,238,1)',
+          backgroundColor: 'rgba(34,211,238,0.10)',
+          fill: true, tension: 0.4, pointBackgroundColor: '#22d3ee',
           pointRadius: 5, pointHoverRadius: 8,
         }],
       },
       options: {
         responsive: true, plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9090b8' } },
-          y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9090b8', stepSize: 1 } },
+          x: { grid: { color: 'rgba(148,163,255,0.07)' }, ticks: { color: '#9aa6c4' } },
+          y: { grid: { color: 'rgba(148,163,255,0.07)' }, ticks: { color: '#9aa6c4', stepSize: 1 } },
         },
       }
     });
@@ -207,13 +207,13 @@ function renderTrendCharts(data) {
         labels: ['Software', 'Hardware'],
         datasets: [{
           data: [70, 30],
-          backgroundColor: ['rgba(99,102,241,0.8)', 'rgba(251,191,36,0.8)'],
+          backgroundColor: ['rgba(139,92,246,0.85)', 'rgba(34,211,238,0.85)'],
           borderWidth: 0, hoverOffset: 8,
         }],
       },
       options: {
         responsive: true, cutout: '70%',
-        plugins: { legend: { labels: { color: '#9090b8', padding: 16 } } },
+        plugins: { legend: { labels: { color: '#9aa6c4', padding: 16 } } },
       }
     });
   }

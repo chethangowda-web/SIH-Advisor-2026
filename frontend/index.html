@@ -3,148 +3,169 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SIH AI Advisor — Fix Your SIH Problem</title>
+  <title>SIH Aurora — AI Innovation Command Center</title>
   <meta name="description" content="AI-powered analysis and novel project proposal generator for Smart India Hackathon." />
+  <meta name="theme-color" content="#05070e" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <!-- ── Razorpay / Lando Norris Top Header ─────────────────── -->
-  <header class="top-header">
-    <div class="header-brand">
-      <div class="brand-logo">SIH</div>
-      <span class="brand-text">SIH ADVISOR // ENGINE</span>
+  <!-- Boot splash -->
+  <div id="bootSplash" class="boot-splash">
+    <div class="boot-mark">A</div>
+    <div class="boot-line"></div>
+    <div class="boot-text">Initializing Innovation Engine</div>
+  </div>
+
+  <!-- Ambient background -->
+  <div class="aurora" aria-hidden="true">
+    <div class="aurora-blob b1"></div>
+    <div class="aurora-blob b2"></div>
+    <div class="aurora-blob b3"></div>
+  </div>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <canvas id="particles" class="particles" aria-hidden="true"></canvas>
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       HEADER
+       ══════════════════════════════════════════════════════════════ -->
+  <header class="top-header" id="topHeader">
+    <div class="header-brand" onclick="scrollToSection('hero-section')">
+      <span class="brand-logo">SIH<span style="opacity:.55">·</span>AI</span>
+      <span class="brand-text"><b>//</b> AURORA ADVISOR</span>
     </div>
 
     <nav class="top-nav">
       <button id="nav-hero" class="nav-item active" onclick="scrollToSection('hero-section')">
-        <i class="fa-solid fa-flag"></i><span>START</span>
+        <i class="fa-solid fa-satellite-dish"></i><span>Start</span>
       </button>
       <button id="nav-dashboard" class="nav-item" onclick="navigate('dashboard')">
-        <i class="fa-solid fa-chart-pie"></i><span>DASHBOARD</span>
+        <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
       </button>
       <button id="nav-trends" class="nav-item" onclick="navigate('trends')">
-        <i class="fa-solid fa-chart-line"></i><span>TRENDS</span>
+        <i class="fa-solid fa-chart-line"></i><span>Trends</span>
       </button>
       <button id="nav-ideas" class="nav-item" onclick="navigate('ideas')">
-        <i class="fa-solid fa-lightbulb"></i><span>IDEAS</span>
+        <i class="fa-solid fa-lightbulb"></i><span>Ideas</span>
       </button>
       <button id="nav-blueprint" class="nav-item" onclick="navigate('blueprint')">
-        <i class="fa-solid fa-layer-group"></i><span>BLUEPRINT</span>
+        <i class="fa-solid fa-layer-group"></i><span>Blueprint</span>
       </button>
       <button id="nav-chat" class="nav-item" onclick="navigate('chat')">
-        <i class="fa-solid fa-comments"></i><span>AI MENTOR</span>
+        <i class="fa-solid fa-comments"></i><span>AI Mentor</span>
       </button>
     </nav>
 
     <div class="header-telemetry">
       <div class="backend-status" id="backendStatus">
         <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">CONNECTING...</span>
+        <span id="statusText">Connecting...</span>
       </div>
     </div>
   </header>
 
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- KINETIC HERO SECTION (LANDO NORRIS + RAZORPAY STYLE)      -->
-  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       HERO
+       ══════════════════════════════════════════════════════════════ -->
   <section id="hero-section" class="hero-container">
-    <div class="hero-badge">[ SIH 2026 // INNOVATION ADVISOR ]</div>
-    <h1 class="hero-title">FIX YOUR <span class="emerald-text">SIH PROBLEM</span></h1>
-    <p class="hero-sub">7 Years of SIH Winners. Thousands of Data Points. One RAG AI Engine.</p>
+    <div class="hero-badge"><span class="pulse-dot"></span> Live · SIH 2026 Innovation Advisor</div>
 
-    <!-- Cascading Falling Cards Stream -->
-    <div class="cards-cascade-wrapper">
-      <div class="falling-card fc-1">
-        <div class="fc-tag">SIH 2021 WINNER</div>
-        <div class="fc-title">AGRICULTURE AI</div>
-      </div>
-      <div class="falling-card fc-2">
-        <div class="fc-tag">SIH 2022 WINNER</div>
-        <div class="fc-title">BLOCKCHAIN GOV</div>
-      </div>
-      <div class="falling-card fc-3">
-        <div class="fc-tag">SIH 2023 WINNER</div>
-        <div class="fc-title">SMART WATER IOT</div>
-      </div>
-      
-      <!-- Winning Solution Center Card -->
-      <div class="solution-hero-card">
-        <div class="shc-badge">YOUR WINNING SOLUTION</div>
-        <div class="shc-title">NOVEL & FEASIBLE IDEA GENERATOR</div>
-        <div class="shc-desc">Powered by Groq Llama-3.3 & ChromaDB Vector Search. Zero redundancy. 100% original.</div>
+    <h1 class="hero-title">Turn Data Into<br /><span class="grad-text">Winning Solutions</span></h1>
+    <p class="hero-sub">
+      7 years of SIH winners. 34 indexed projects. One RAG engine — powered by Groq Llama-3.3 and ChromaDB vector search.
+    </p>
+
+    <!-- Floating chips + center card -->
+    <div class="hero-stage">
+      <div class="float-chip chip1">AGRICULTURE AI <span class="chip-year">SIH '21 WINNER</span></div>
+      <div class="float-chip chip2">BLOCKCHAIN GOV <span class="chip-year">SIH '22 WINNER</span></div>
+      <div class="float-chip chip3">SMART WATER IOT <span class="chip-year">SIH '23 WINNER</span></div>
+
+      <div class="solution-hero-card" id="heroCard">
+        <div class="shc-orb"><i class="fa-solid fa-lightbulb"></i></div>
+        <div class="shc-badge">Your Winning Solution</div>
+        <div class="shc-title">Novel &amp; Feasible Idea Generator</div>
+        <div class="shc-desc">Zero redundancy. 100% original. Benchmarked against 7+ years of winning blueprints.</div>
         <button class="btn-primary btn-large" onclick="navigate('ideas')">
-          <i class="fa-solid fa-bolt"></i> GENERATE YOUR SOLUTION NOW
+          <i class="fa-solid fa-bolt"></i> Generate Your Solution
         </button>
       </div>
     </div>
 
-    <!-- Interactive Scratch Card Component -->
+    <!-- Interactive scratch card -->
     <div class="scratch-card-wrapper">
       <div class="scratch-card-header">
-        <i class="fa-solid fa-sparkles"></i> INTERACTIVE SCRATCH CARD: SCRATCH TO REVEAL A SECRET IDEA
+        <i class="fa-solid fa-sparkles"></i> Scratch to reveal a secret concept
       </div>
       <div class="scratch-canvas-container">
         <div class="scratch-secret-content">
           <div class="secret-tag">[ REVEALED SECRET CONCEPT ]</div>
-          <div class="secret-title">AI-POWERED PREDICTIVE MALNUTRITION DIAGNOSIS VIA SMARTPHONE 3D DEPTH CAMERA</div>
-          <div class="secret-desc">Novelty: 9.5/10 | Feasibility: 9/10 | Target: Ministry of Women & Child Dev</div>
+          <div class="secret-title">AI-Powered Predictive Malnutrition Diagnosis via Smartphone 3D Depth Camera</div>
+          <div class="secret-desc">Novelty 9.5/10 · Feasibility 9/10 · Ministry of Women &amp; Child Development</div>
         </div>
         <canvas id="scratchCanvas" width="650" height="140"></canvas>
       </div>
     </div>
 
-    <!-- Scroll Indicator -->
     <div class="scroll-indicator" onclick="navigate('dashboard')">
-      <span>SCROLL DOWN TO EXPLORE ENGINE DASHBOARD</span>
+      <span>Scroll to explore command center</span>
       <i class="fa-solid fa-chevron-down"></i>
     </div>
   </section>
 
-  <!-- ── Main Content Dashboard ───────────────────────────────── -->
+  <!-- ══════════════════════════════════════════════════════════════
+       MAIN CONTENT
+       ══════════════════════════════════════════════════════════════ -->
   <main class="main-content">
-
     <div id="toastContainer" class="toast-container"></div>
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- SECTION: DASHBOARD                                        -->
-    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- ── DASHBOARD ─────────────────────────────────────────────── -->
     <section class="section active" id="section-dashboard">
       <div class="page-header">
-        <div class="header-badge">[ SIH-INTELLIGENCE // KINETIC PLATFORM ]</div>
-        <h1 class="page-title">SIH STRATEGY & PROPOSAL ENGINE</h1>
-        <p class="page-subtitle">Benchmarking 7+ years of past winning solutions to identify high-impact, non-redundant problem spaces.</p>
+        <div class="header-badge"><i class="fa-solid fa-chart-pie"></i> SIH-Intelligence // Command Center</div>
+        <h1 class="page-title">Strategy &amp; Proposal Engine</h1>
+        <p class="page-subtitle">Benchmarking 7+ years of past winning solutions to surface high-impact, non-redundant problem spaces.</p>
       </div>
 
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-database"></i></div>
           <div class="stat-number" id="cnt-projects">0</div>
-          <div class="stat-label">PROJECTS INDEXED</div>
+          <div class="stat-label">Projects Indexed</div>
+          <div class="stat-bar"><span style="--w:100%"></span></div>
         </div>
         <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-globe"></i></div>
           <div class="stat-number" id="cnt-domains">0</div>
-          <div class="stat-label">DOMAINS COVERED</div>
+          <div class="stat-label">Domains Covered</div>
+          <div class="stat-bar"><span style="--w:100%"></span></div>
         </div>
         <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-timeline"></i></div>
           <div class="stat-number" id="cnt-years">0</div>
-          <div class="stat-label">YEARS ANALYZED</div>
+          <div class="stat-label">Years Analyzed</div>
+          <div class="stat-bar"><span style="--w:100%"></span></div>
         </div>
         <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-code"></i></div>
           <div class="stat-number" id="cnt-techs">0</div>
-          <div class="stat-label">TECH STACKS TRACKED</div>
+          <div class="stat-label">Tech Stacks Tracked</div>
+          <div class="stat-bar"><span style="--w:100%"></span></div>
         </div>
       </div>
 
-      <div class="section-heading">EXECUTION WORKFLOWS</div>
+      <div class="section-heading">Execution Workflows</div>
       <div class="actions-grid">
         <div class="action-card" onclick="navigate('trends')">
           <div class="action-icon"><i class="fa-solid fa-chart-line"></i></div>
           <div class="action-content">
-            <h3>ANALYZE TRENDS</h3>
+            <h3>Analyze Trends</h3>
             <p>Evaluate historical trajectories and category win rates.</p>
           </div>
           <i class="fa-solid fa-arrow-right action-arrow"></i>
@@ -152,7 +173,7 @@
         <div class="action-card" onclick="navigate('ideas')">
           <div class="action-icon"><i class="fa-solid fa-bolt"></i></div>
           <div class="action-content">
-            <h3>GENERATE IDEAS</h3>
+            <h3>Generate Ideas</h3>
             <p>Synthesize non-redundant concepts with novelty validation.</p>
           </div>
           <i class="fa-solid fa-arrow-right action-arrow"></i>
@@ -160,7 +181,7 @@
         <div class="action-card" onclick="navigate('blueprint')">
           <div class="action-icon"><i class="fa-solid fa-layer-group"></i></div>
           <div class="action-content">
-            <h3>BUILD BLUEPRINT</h3>
+            <h3>Build Blueprint</h3>
             <p>Generate production architecture documents and specs.</p>
           </div>
           <i class="fa-solid fa-arrow-right action-arrow"></i>
@@ -168,78 +189,76 @@
         <div class="action-card" onclick="navigate('chat')">
           <div class="action-icon"><i class="fa-solid fa-terminal"></i></div>
           <div class="action-content">
-            <h3>CONSULT AI MENTOR</h3>
-            <p>Interactive architecture queries and Q&A optimization.</p>
+            <h3>Consult AI Mentor</h3>
+            <p>Interactive architecture queries and Q&amp;A optimization.</p>
           </div>
           <i class="fa-solid fa-arrow-right action-arrow"></i>
         </div>
       </div>
 
-      <div class="section-heading">INDEX // BROWSE BY DOMAIN</div>
+      <div class="section-heading">Index · Browse by Domain</div>
       <div class="domains-grid" id="domainsGrid"></div>
     </section>
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- SECTION: TRENDS                                           -->
-    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- ── TRENDS ───────────────────────────────────────────────── -->
     <section class="section" id="section-trends">
       <div class="page-header">
-        <h1 class="page-title">HISTORICAL TREND ANALYSIS</h1>
+        <div class="header-badge"><i class="fa-solid fa-chart-line"></i> Historical Analysis</div>
+        <h1 class="page-title">Trend Trajectories</h1>
         <p class="page-subtitle">Pattern extraction across indexed historical entries (2017–2024)</p>
       </div>
 
       <div id="trendsLoader" class="loader-card">
         <div class="spinner"></div>
-        <p>QUERYING VECTOR INDEX FOR TREND TRAJECTORIES...</p>
+        <p>Querying vector index for trend trajectories...</p>
       </div>
 
       <div id="trendsContent" class="hidden">
         <div class="charts-grid">
           <div class="chart-card wide">
-            <h3 class="chart-title"><i class="fa-solid fa-chart-bar"></i> DOMAIN DISTRIBUTION INDEX</h3>
+            <h3 class="chart-title"><i class="fa-solid fa-chart-bar"></i> Domain Distribution Index</h3>
             <canvas id="domainChart" height="260"></canvas>
           </div>
           <div class="chart-card">
-            <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> ENTRY VOLUME TRAJECTORY</h3>
+            <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> Entry Volume Trajectory</h3>
             <canvas id="yearChart" height="220"></canvas>
           </div>
           <div class="chart-card">
-            <h3 class="chart-title"><i class="fa-solid fa-pie-chart"></i> HARDWARE VS SOFTWARE RATIO</h3>
+            <h3 class="chart-title"><i class="fa-solid fa-pie-chart"></i> Hardware vs Software Ratio</h3>
             <canvas id="hwswChart" height="220"></canvas>
           </div>
         </div>
 
         <div class="two-col">
           <div class="glass-card">
-            <h3 class="card-title"><i class="fa-solid fa-code"></i> RISING TECHNOLOGIES</h3>
+            <h3 class="card-title"><i class="fa-solid fa-code"></i> Rising Technologies</h3>
             <div id="techBadges" class="tech-badges"></div>
           </div>
           <div class="glass-card">
-            <h3 class="card-title"><i class="fa-solid fa-arrow-trend-up"></i> HIGH-TRAJECTORY DOMAINS</h3>
+            <h3 class="card-title"><i class="fa-solid fa-arrow-trend-up"></i> High-Trajectory Domains</h3>
             <div id="hotDomains"></div>
           </div>
         </div>
 
         <div class="glass-card">
-          <h3 class="card-title"><i class="fa-solid fa-list-check"></i> ANALYTICAL INSIGHTS</h3>
+          <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Analytical Insights</h3>
           <div id="keyInsights"></div>
         </div>
       </div>
     </section>
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- SECTION: IDEAS                                            -->
-    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- ── IDEAS ────────────────────────────────────────────────── -->
     <section class="section" id="section-ideas">
       <div class="page-header">
-        <h1 class="page-title">PROPOSAL SYNTHESIZER</h1>
-        <p class="page-subtitle">Synthesize non-redundant concepts benchmarked against RAG index</p>
+        <div class="header-badge"><i class="fa-solid fa-bolt"></i> Proposal Synthesizer</div>
+        <h1 class="page-title">Idea Generator</h1>
+        <p class="page-subtitle">Synthesize non-redundant concepts benchmarked against the RAG index</p>
       </div>
 
       <div class="gen-form glass-card">
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">DOMAIN SELECTION</label>
+            <label class="form-label">Domain Selection</label>
             <select id="domainSelect" class="form-select">
               <option value="">Choose domain...</option>
               <option value="Agriculture">Agriculture</option>
@@ -257,19 +276,19 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">FOCUS AREA / KEYWORDS</label>
+            <label class="form-label">Focus Area / Keywords</label>
             <input id="themeInput" class="form-input" type="text" placeholder="e.g. computer vision, rural access, blockchain" />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">OUTPUT COUNT: <span id="numIdeasLabel">3</span></label>
+            <label class="form-label">Output Count: <span id="numIdeasLabel">3</span></label>
             <input id="numIdeas" type="range" min="1" max="5" value="3" class="form-range"
               oninput="document.getElementById('numIdeasLabel').textContent = this.value" />
           </div>
           <div class="form-group flex-end">
             <button class="btn-primary btn-large" id="generateIdeasBtn" onclick="generateIdeas()">
-              <i class="fa-solid fa-bolt"></i> SYNTHESIZE PROPOSALS
+              <i class="fa-solid fa-bolt"></i> Synthesize Proposals
             </button>
           </div>
         </div>
@@ -277,29 +296,28 @@
 
       <div id="ideasLoader" class="loader-card hidden">
         <div class="spinner"></div>
-        <p>RUNNING RAG NOVELTY FILTER & GENERATION...</p>
+        <p>Running RAG novelty filter &amp; generation...</p>
       </div>
 
       <div id="ideasGrid" class="ideas-grid"></div>
     </section>
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- SECTION: BLUEPRINT                                        -->
-    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- ── BLUEPRINT ────────────────────────────────────────────── -->
     <section class="section" id="section-blueprint">
       <div class="page-header">
-        <h1 class="page-title">BLUEPRINT BUILDER</h1>
+        <div class="header-badge"><i class="fa-solid fa-layer-group"></i> Blueprint Builder</div>
+        <h1 class="page-title">Blueprint Builder</h1>
         <p class="page-subtitle">Generate production architecture specification documents</p>
       </div>
 
       <div id="blueprintForm" class="glass-card">
-        <div class="card-title"><i class="fa-solid fa-sliders"></i> SPECIFICATION CONFIGURATION</div>
-        <div class="form-group">
-          <label class="form-label">PROJECT TITLE *</label>
+        <div class="card-title"><i class="fa-solid fa-sliders"></i> Specification Configuration</div>
+        <div class="form-group" style="margin-bottom:18px">
+          <label class="form-label">Project Title *</label>
           <input id="bp-title" class="form-input" placeholder="e.g. Computer Vision Crop Pathology System" />
         </div>
-        <div class="form-group">
-          <label class="form-label">DOMAIN *</label>
+        <div class="form-group" style="margin-bottom:18px">
+          <label class="form-label">Domain *</label>
           <select id="bp-domain" class="form-select">
             <option value="">Select domain...</option>
             <option value="Agriculture">Agriculture</option>
@@ -315,54 +333,53 @@
             <option value="Environment">Environment</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">PROBLEM DEFINITION *</label>
+        <div class="form-group" style="margin-bottom:18px">
+          <label class="form-label">Problem Definition *</label>
           <textarea id="bp-problem" class="form-textarea" rows="3" placeholder="Quantify problem scope, affected demographics, and current constraints."></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">PROPOSED TECHNICAL SOLUTION *</label>
+        <div class="form-group" style="margin-bottom:18px">
+          <label class="form-label">Proposed Technical Solution *</label>
           <textarea id="bp-solution" class="form-textarea" rows="3" placeholder="Describe core system architecture, algorithms, and key features."></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">TECH STACK (COMMA SEPARATED)</label>
+        <div class="form-group" style="margin-bottom:18px">
+          <label class="form-label">Tech Stack (Comma Separated)</label>
           <input id="bp-tech" class="form-input" placeholder="e.g. Python, TensorFlow, FastAPI, PostgreSQL" />
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">TEAM SIZE</label>
+            <label class="form-label">Team Size</label>
             <input id="bp-team" class="form-input" type="number" value="6" min="1" max="10" />
           </div>
           <div class="form-group">
-            <label class="form-label">TIMELINE (WEEKS)</label>
+            <label class="form-label">Timeline (Weeks)</label>
             <input id="bp-duration" class="form-input" type="number" value="4" min="1" max="12" />
           </div>
         </div>
         <button class="btn-primary btn-large" id="generateBlueprintBtn" onclick="generateBlueprint()">
-          <i class="fa-solid fa-file-code"></i> GENERATE SPECIFICATION DOCUMENT
+          <i class="fa-solid fa-file-code"></i> Generate Specification Document
         </button>
       </div>
 
       <div id="blueprintLoader" class="loader-card hidden">
         <div class="spinner"></div>
-        <p>BUILDING TECHNICAL SPECIFICATION BLUEPRINT...</p>
+        <p>Building technical specification blueprint...</p>
       </div>
 
       <div id="blueprintOutput" class="hidden"></div>
     </section>
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- SECTION: CHAT                                             -->
-    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- ── CHAT ─────────────────────────────────────────────────── -->
     <section class="section" id="section-chat">
       <div class="page-header">
-        <h1 class="page-title">AI CONSULTANT TERMINAL</h1>
-        <p class="page-subtitle">Interactive queries against historical benchmarks & tech optimization</p>
+        <div class="header-badge"><i class="fa-solid fa-comments"></i> AI Consultant</div>
+        <h1 class="page-title">AI Mentor Terminal</h1>
+        <p class="page-subtitle">Interactive queries against historical benchmarks &amp; tech optimization</p>
       </div>
 
       <div class="chat-container">
         <div class="chat-messages" id="chatMessages">
           <div class="chat-bubble bot">
-            <div class="bubble-avatar">SIH</div>
+            <div class="bubble-avatar"><i class="fa-solid fa-robot"></i></div>
             <div class="bubble-content">
               <p>SIH Advisor Engine online. Ask technical questions regarding domain distribution, judge evaluation criteria, or tech stack optimization.</p>
             </div>
@@ -385,6 +402,14 @@
 
   </main>
 
+  <!-- Footer -->
+  <footer class="site-footer">
+    <span class="ft-grad">SIH AURORA // ADVISOR</span>
+    <span>Powered by Groq · ChromaDB · FastAPI</span>
+    <span>Engine: <span id="footerStatus">Standby</span></span>
+  </footer>
+
   <script src="app.js"></script>
+  <script src="fx.js"></script>
 </body>
 </html>
