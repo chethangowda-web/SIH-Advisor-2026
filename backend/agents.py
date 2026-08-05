@@ -42,24 +42,41 @@ class TrendAnalysis(BaseModel):
 
 # ─────────────────────────── Singleton Loader ────────────────────────────────
 
-_llm: Optional[ChatGroq] = None
+_llms: dict = {}
 
-def get_llm() -> ChatGroq:
-    global _llm
-    if _llm is None:
-        _llm = ChatGroq(
+def get_llm(max_tokens: Optional[int] = None) -> ChatGroq:
+    """Return a cached ChatGroq instance. Different max_tokens values get their own
+    instance so we can cap token burn per endpoint (chat is small, blueprints big)."""
+    global _llms
+    mt = max_tokens if max_tokens else 4096
+    if mt not in _llms:
+        _llms[mt] = ChatGroq(
             api_key=config.GROQ_API_KEY,
             model=config.GROQ_MODEL,
             temperature=0.7,
-            max_tokens=4096,
+            max_tokens=mt,
         )
-    return _llm
+    return _llms[mt]
 
 # ─────────────────────────── Resilient LLM Invoker ───────────────────────────
 
-async def _invoke_with_retry(call, *args, attempts: int = 4, base_delay: float = 1.0, **kwargs):
+def _is_rate_limit(exc: Exception) -> bool:
+    """True when the error is a Groq/OpenAI rate-limit or quota exhaustion."""
+    sc = getattr(exc, "status_code", None)
+    if sc is not None and str(sc) == "429":
+        return True
+    text = str(exc)
+    for marker in ("429", "rate_limit", "Rate limit", "tokens per day", "TPD", "quota"):
+        if marker in text:
+            return True
+    return False
+
+async def _invoke_with_retry(call, *args, attempts: int = 3, base_delay: float = 1.0, **kwargs):
     """Invoke an LLM call (e.g. chain.ainvoke) with exponential backoff so transient
-    Groq failures (rate limits, 5xx, brief timeouts) don't surface as hard errors."""
+    Groq failures (5xx, brief timeouts) don't surface as hard errors.
+
+    Rate-limit / quota errors are raised immediately with a clear message — retrying
+    them only burns the daily token budget faster."""
     if not config.GROQ_API_KEY:
         raise RuntimeError("GROQ_API_KEY is not set. Add it to backend/.env and restart.")
     last_err = None
@@ -70,6 +87,10 @@ async def _invoke_with_retry(call, *args, attempts: int = 4, base_delay: float =
             raise
         except Exception as e:
             last_err = e
+            if _is_rate_limit(e):
+                raise RuntimeError(
+                    "The AI service's free daily limit has been reached. Please try again later."
+                ) from e
             delay = base_delay * (2 ** i) + random.random()
             await asyncio.sleep(delay)
     raise last_err
@@ -173,7 +194,7 @@ def _trends_fallback() -> dict:
     }
 
 async def _analyze_trends_llm() -> dict:
-    llm = get_llm()
+    llm = get_llm(max_tokens=1500)
     all_projects = get_all_projects_summary()
 
     prompt = ChatPromptTemplate.from_messages([
@@ -206,27 +227,23 @@ Return a JSON with these exact keys:
     return json.loads(clean)
 
 async def analyze_trends() -> dict:
-    """Analyze trends across all SIH winning projects. Cached to avoid hammering
-    Groq on every page load; falls back to dataset-derived trends if the LLM fails."""
+    """Trend analysis computed deterministically from the dataset (no LLM call).
+
+    This keeps the Trends page instant, always available, and free of the Groq
+    token budget — it can never fail, time out, or show an error to users."""
     now = time.time()
     if _trends_cache["data"] is not None and (now - _trends_cache["ts"]) < TRENDS_TTL_SECONDS:
         return _trends_cache["data"]
-
-    try:
-        data = await _analyze_trends_llm()
-        if isinstance(data, dict) and data.get("top_domains"):
-            _trends_cache["ts"] = time.time()
-            _trends_cache["data"] = data
-        return data
-    except Exception:
-        # LLM unavailable -> serve deterministic trends so the page never errors.
-        return _trends_fallback()
+    data = _trends_fallback()
+    _trends_cache["ts"] = now
+    _trends_cache["data"] = data
+    return data
 
 # ─────────────────────────── Agent: Gap Finder ───────────────────────────────
 
 async def find_gaps(domain: str = "all") -> list[dict]:
     """Find unsolved problem spaces in SIH history."""
-    llm = get_llm()
+    llm = get_llm(max_tokens=2000)
     
     all_projects = get_all_projects_summary()
     

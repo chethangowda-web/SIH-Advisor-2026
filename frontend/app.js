@@ -654,7 +654,10 @@ async function sendChatMessage() {
     state.chatHistory.push({ role: 'assistant', content: res.response });
   } catch (err) {
     hideTyping();
-    appendMessage('bot', `⚠️ **Couldn't generate a response just now.**\n\nThe AI service may be busy or temporarily unavailable. Please try again in a moment.`);
+    const reason = (err && err.message && !/^failed to fetch/i.test(err.message))
+      ? err.message
+      : "Couldn't generate a response just now. The AI service may be busy — please try again in a moment.";
+    appendMessage('bot', `⚠️ ${reason}`);
   }
 }
 

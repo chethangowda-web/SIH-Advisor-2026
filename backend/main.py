@@ -22,6 +22,17 @@ def _as_error(exc: Exception, default: str = "Something went wrong. Please try a
     that normally produce a bare, empty 500 body)."""
     return {"success": False, "error": str(exc) if str(exc) else default}
 
+def _raise_llm_error(exc: Exception) -> HTTPException:
+    """Map an LLM failure to a clean HTTP response. Quota/rate-limit errors become a
+    503 with a friendly message; everything else a 500."""
+    text = str(exc)
+    if "limit" in text.lower() or "429" in text:
+        return HTTPException(
+            status_code=503,
+            detail="The AI service's free daily limit has been reached. Please try again later.",
+        )
+    return HTTPException(status_code=500, detail=text or "AI generation failed. Please try again.")
+
 app = FastAPI(
     title="SIH AI Advisor API",
     description="AI-powered Smart India Hackathon project advisor",
@@ -126,7 +137,7 @@ async def generate_ideas(request: IdeaRequest):
     except asyncio.CancelledError:
         raise HTTPException(status_code=500, detail="Idea generation was interrupted. Please try again.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _raise_llm_error(e)
 
 @app.post("/api/blueprint")
 async def create_blueprint(request: BlueprintRequest):
@@ -145,7 +156,7 @@ async def create_blueprint(request: BlueprintRequest):
     except asyncio.CancelledError:
         raise HTTPException(status_code=500, detail="Blueprint generation was interrupted. Please try again.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _raise_llm_error(e)
 
 @app.post("/api/find-gaps")
 async def find_gaps(request: GapRequest):
@@ -156,7 +167,7 @@ async def find_gaps(request: GapRequest):
     except asyncio.CancelledError:
         raise HTTPException(status_code=500, detail="Gap analysis was interrupted. Please try again.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _raise_llm_error(e)
 
 @app.post("/api/chat")
 async def chat(request: ChatMessage):
@@ -170,7 +181,7 @@ async def chat(request: ChatMessage):
     except asyncio.CancelledError:
         raise HTTPException(status_code=500, detail="The assistant timed out. Please try again.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _raise_llm_error(e)
 
 # ─── Serve Static Frontend (single-service deploy) ───────────────────────────
 # Mount the SPA at / so one Railway service + one domain serves UI + API.
