@@ -5,10 +5,12 @@ FastAPI server — all API endpoints for the SIH AI Advisor.
 
 import os
 import asyncio
+import traceback
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 import agents
@@ -38,6 +40,19 @@ app = FastAPI(
     description="AI-powered Smart India Hackathon project advisor",
     version="1.0.0"
 )
+
+# ─── Guard: never return a bare empty 500 ─────────────────────────────────────
+# Log any unhandled exception and always return a JSON body so the frontend can
+# show a friendly message instead of "Backend not connected" or a blank error.
+@app.middleware("http")
+async def catch_unhandled(request, call_next):
+    try:
+        return await call_next(request)
+    except asyncio.CancelledError:
+        raise
+    except BaseException as e:
+        traceback.print_exc()
+        return JSONResponse(status_code=500, content={"detail": "Something went wrong. Please try again."})
 
 # ─── CORS (allow frontend to call this API) ───────────────────────────────────
 app.add_middleware(
