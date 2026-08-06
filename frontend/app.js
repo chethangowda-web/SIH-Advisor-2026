@@ -7,19 +7,24 @@ const API = (location.hostname === 'localhost' || location.hostname === '127.0.0
   ? 'http://localhost:8000'
   : '';
 
+// Fallback only; the live domain list is loaded from /api/domains and counts
+// from /api/stats on init (see populateDomains), so the dropdown and dashboard
+// stay in sync with the actual SIH dataset.
 const DOMAINS = [
-  { name:'Agriculture',       count: 5 },
-  { name:'Healthcare',        count: 8 },
-  { name:'Education',         count: 4 },
-  { name:'Governance',        count: 5 },
-  { name:'Clean Technology',  count: 4 },
-  { name:'Smart Cities',      count: 2 },
-  { name:'Disaster Management',count: 3 },
-  { name:'Transportation',    count: 3 },
-  { name:'Finance',           count: 1 },
-  { name:'Cybersecurity',     count: 2 },
-  { name:'Environment',       count: 2 },
-  { name:'Smart Automation',  count: 1 },
+  { name:'Agriculture',       count: 0 },
+  { name:'Healthcare',        count: 0 },
+  { name:'Education',         count: 0 },
+  { name:'Governance',        count: 0 },
+  { name:'Clean Technology',  count: 0 },
+  { name:'Smart Cities',      count: 0 },
+  { name:'Disaster Management',count: 0 },
+  { name:'Transportation',    count: 0 },
+  { name:'Finance',           count: 0 },
+  { name:'Cybersecurity',     count: 0 },
+  { name:'Environment',       count: 0 },
+  { name:'Smart Automation',  count: 0 },
+  { name:'Security',          count: 0 },
+  { name:'Heritage & Culture',count: 0 },
 ];
 
 const state = {
@@ -108,9 +113,53 @@ async function loadDashboard() {
   }
 }
 
-function renderDomains() {
+async function populateDomains() {
+  const breakdown = {};
+  try {
+    const stats = await apiFetch('/api/stats');
+    Object.assign(breakdown, stats.domain_breakdown || {});
+  } catch { /* keep fallback counts */ }
+
+  let domains = DOMAINS.map(d => ({ ...d, count: breakdown[d.name] ?? d.count }));
+  try {
+    const res = await apiFetch('/api/domains');
+    if (res.domains?.length) {
+      const sel = res.domains;
+      const extra = sel.filter(n => !domains.some(d => d.name === n))
+        .map(n => ({ name: n, count: breakdown[n] ?? 0 }));
+      domains = sel.map(n => {
+        const known = domains.find(d => d.name === n);
+        return known ? { ...known, name: n } : { name: n, count: breakdown[n] ?? 0 };
+      }).concat(extra);
+    }
+  } catch { /* keep fallback list */ }
+
+  renderDomains(domains);
+  populateDomainSelect(domains.map(d => d.name));
+}
+
+function populateDomainSelect(names) {
+  const sel = $('domainSelect');
+  if (!sel || !names?.length) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="" selected>Choose domain...</option>' +
+    names.map(n => `<option value="${n}">${n}</option>`).join('');
+  if (current) sel.value = current;
+
+  const bp = $('bp-domain');
+  if (bp) {
+    const bpCurrent = bp.value;
+    bp.innerHTML = '<option value="" selected>Select domain...</option>' +
+      names.map(n => `<option value="${n}">${n}</option>`).join('');
+    if (bpCurrent) bp.value = bpCurrent;
+  }
+}
+
+function renderDomains(domains) {
   const grid = $('domainsGrid');
-  grid.innerHTML = DOMAINS.map(d => `
+  if (!grid) return;
+  const list = domains && domains.length ? domains : DOMAINS.filter(d => d.count > 0);
+  grid.innerHTML = list.map(d => `
     <div class="domain-card" onclick="quickGenerate('${d.name}')">
       <div class="domain-name">${d.name}</div>
       <div class="domain-count">${d.count} Historical Entries</div>
@@ -133,7 +182,8 @@ async function loadTrends(force = false) {
 
   try {
     const { data } = await apiFetch('/api/trends');
-    renderTrendCharts(data);
+    const stats = await apiFetch('/api/stats').catch(() => null);
+    renderTrendCharts(data, stats);
     renderTrendDetails(data);
     state.trendsLoaded = true;
     $('trendsLoader').classList.add('hidden');
@@ -148,7 +198,7 @@ async function loadTrends(force = false) {
   }
 }
 
-function renderTrendCharts(data) {
+function renderTrendCharts(data, stats) {
   // Domain Chart
   const domainCtx = $('domainChart')?.getContext('2d');
   if (domainCtx && data.top_domains) {
@@ -177,16 +227,19 @@ function renderTrendCharts(data) {
     });
   }
 
-  // Year Chart - use static data for now
+  // Year Chart - driven by live year breakdown
   const yearCtx = $('yearChart')?.getContext('2d');
   if (yearCtx) {
+    const years = stats?.year_breakdown ? Object.entries(stats.year_breakdown) : null;
+    const labels = years ? years.map(([y]) => y) : ['2017','2018','2019','2020','2021','2022','2023','2024'];
+    const values = years ? years.map(([, c]) => c) : [2,3,3,3,4,5,7,8];
     new Chart(yearCtx, {
       type: 'line',
       data: {
-        labels: ['2017','2018','2019','2020','2021','2022','2023','2024'],
+        labels,
         datasets: [{
           label: 'Projects',
-          data: [2,3,3,3,4,5,7,8],
+          data: values,
           borderColor: 'rgba(34,211,238,1)',
           backgroundColor: 'rgba(34,211,238,0.10)',
           fill: true, tension: 0.4, pointBackgroundColor: '#22d3ee',
@@ -203,15 +256,18 @@ function renderTrendCharts(data) {
     });
   }
 
-  // HW/SW Chart
+  // HW/SW Chart - driven by live breakdown
   const hwswCtx = $('hwswChart')?.getContext('2d');
   if (hwswCtx) {
+    const hw = stats?.hardware_projects ?? null;
+    const sw = stats?.software_projects ?? null;
+    const dataVals = (hw !== null && sw !== null) ? [sw, hw] : [70, 30];
     new Chart(hwswCtx, {
       type: 'doughnut',
       data: {
         labels: ['Software', 'Hardware'],
         datasets: [{
-          data: [70, 30],
+          data: dataVals,
           backgroundColor: ['rgba(139,92,246,0.85)', 'rgba(34,211,238,0.85)'],
           borderWidth: 0, hoverOffset: 8,
         }],
@@ -759,7 +815,7 @@ async function init() {
 
   // Load dashboard data
   await loadDashboard();
-  renderDomains();
+  await populateDomains();
 
   // Enter key for chat
   const chatInput = $('chatInput');
