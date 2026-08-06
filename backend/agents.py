@@ -47,12 +47,23 @@ _llms: dict = {}
 def get_llm(max_tokens: Optional[int] = None, model: Optional[str] = None) -> ChatOpenAI:
     global _llms
     mt = max_tokens if max_tokens else 4096
-    m = model or config.OPENROUTER_MODEL
+    if model is None:
+        m = (
+            config.FEATHERLESS_MODEL
+            if config.LLM_PROVIDER == "featherless"
+            else config.OPENROUTER_MODEL
+        )
+    else:
+        m = model
     key = (m, mt)
     if key not in _llms:
+        if config.LLM_PROVIDER == "featherless":
+            api_key, base_url = config.FEATHERLESS_API_KEY, config.FEATHERLESS_BASE_URL
+        else:
+            api_key, base_url = config.OPENROUTER_API_KEY, config.OPENROUTER_BASE_URL
         kwargs = dict(
-            api_key=config.OPENROUTER_API_KEY,
-            base_url=config.OPENROUTER_BASE_URL,
+            api_key=api_key,
+            base_url=base_url,
             model=m,
             temperature=0.7,
             max_tokens=mt,
@@ -62,9 +73,13 @@ def get_llm(max_tokens: Optional[int] = None, model: Optional[str] = None) -> Ch
         # qwen3 models default to a thinking/reasoning mode that can occasionally
         # emit only a reasoning block with an empty final answer, which makes
         # OpenRouter fail JSON validation ("json_validate_failed"). Disable it so
-        # the model always returns readable JSON.
-        if m.startswith("qwen"):
-            kwargs["extra_body"] = {"reasoning": {"enabled": False}}
+        # the model always returns readable JSON. On Featherless the correct switch
+        # is chat_template_kwargs.enable_thinking (big speed win: no "thinking" prelude).
+        if m.lower().startswith("qwen"):
+            if config.LLM_PROVIDER == "featherless":
+                kwargs["extra_body"] = {"chat_template_kwargs": {"enable_thinking": False}}
+            else:
+                kwargs["extra_body"] = {"reasoning": {"enabled": False}}
         _llms[key] = ChatOpenAI(**kwargs)
     return _llms[key]
 
@@ -128,8 +143,9 @@ def _as_list(data) -> list:
     return []
 
 async def _invoke_with_retry(call, *args, attempts: int = 3, base_delay: float = 1.0, call_timeout: float = 150.0, **kwargs):
-    if not config.OPENROUTER_API_KEY:
-        raise RuntimeError("OPENROUTER_API_KEY is not set. Add it to backend/.env and restart.")
+    if not config.OPENROUTER_API_KEY and not config.FEATHERLESS_API_KEY:
+        raise RuntimeError(f"{config.LLM_PROVIDER.upper()} API key is not set. "
+                           "Add it to backend/.env and restart.")
     last_err = None
     for i in range(attempts):
         try:
@@ -303,7 +319,7 @@ Return ONLY:
         return [{"error": "Could not parse ideas", "raw": response[:500]}]
 
 async def chat_with_advisor(message: str, history: list[dict]) -> str:
-    llm = get_llm(max_tokens=1000, model=config.CHAT_MODEL)
+    llm = get_llm(max_tokens=1000)
     similar = retrieve_similar_projects(message, n_results=4)
     context = "\n".join([
         f"- {p['metadata']['title']} ({p['metadata']['year']}): {p['document'][:200]}..."
