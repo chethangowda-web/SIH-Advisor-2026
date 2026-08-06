@@ -41,8 +41,8 @@ python -m venv venv
 # Linux/macOS
 source venv/bin/activate
 
-# 2. Configure the Groq API key
-#    copy backend/.env.example -> backend/.env and fill in GROQ_API_KEY
+# 2. Configure the OpenRouter API key
+#    copy backend/.env.example -> backend/.env and fill in OPENROUTER_API_KEY
 
 # 3. Install dependencies
 pip install -r requirements.txt
@@ -94,8 +94,9 @@ Create `backend/.env` based on `.env.example`:
 
 | Variable        | Description                        | Default                 |
 | --------------- | ---------------------------------- | ----------------------- |
-| `GROQ_API_KEY`  | Groq API key (required)            | —                       |
-| `GROQ_MODEL`    | Groq LLM model                     | `llama-3.3-70b-versatile` |
+| `OPENROUTER_API_KEY` | OpenRouter API key (required)  | —                       |
+| `OPENROUTER_MODEL` | OpenRouter LLM model              | `qwen/qwen3-32b`       |
+| `CHAT_MODEL`    | OpenRouter LLM model for chat       | `meta-llama/llama-3.3-70b-instruct` |
 | `EMBEDDING_MODEL`| Sentence-transformers model       | `all-MiniLM-L6-v2`      |
 | `CHROMA_DB_PATH`| ChromaDB persistence directory     | `./chroma_db`           |
 | `DATA_PATH`     | Historical winners JSON path        | `./data/sih_winners.json` |
@@ -121,7 +122,7 @@ Note: `.env`, `chroma_db/`, and `venv/` are gitignored and never committed.
 
 ## Tech Stack
 
-- **AI & RAG** — LangChain · ChromaDB · Sentence-Transformers (`all-MiniLM-L6-v2`) · Groq (Llama 3.3 70B)
+- **AI & RAG** — LangChain · ChromaDB · Sentence-Transformers (`all-MiniLM-L6-v2`) · OpenRouter (Qwen3 32B / Llama 3.3 70B)
 - **Backend** — Python 3.11 · FastAPI · Uvicorn · Gunicorn
 - **Frontend** — Vanilla JS · HTML5 Canvas · CSS3 · Chart.js
 - **Deployment** — Docker-ready FastAPI + static frontend (Render / Railway)

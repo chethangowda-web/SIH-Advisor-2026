@@ -27,7 +27,7 @@ if not exist "venv" (
     echo [OK] Virtual environment already exists
 )
 
-:: Activate and install (fast set - no heavy PyTorch/ChromaDB needed)
+:: Activate and install
 echo.
 echo [2/3] Installing packages (takes 1-2 minutes)...
 call venv\Scripts\activate.bat
@@ -39,7 +39,7 @@ if %errorlevel% neq 0 (
 )
 echo [OK] Packages installed!
 
-:: Ensure .env exists with a real GROQ_API_KEY
+:: Ensure .env exists with a real OPENROUTER_API_KEY
 echo.
 if not exist ".env" (
     echo [WARN] No .env found. Copying from .env.example...
@@ -48,25 +48,25 @@ if not exist ".env" (
 
 echo [3/3] Checking configuration...
 set "HAS_KEY="
-for /f "tokens=*" %%L in ('findstr /i "GROQ_API_KEY" .env') do (
+for /f "tokens=*" %%L in ('findstr /i "OPENROUTER_API_KEY" .env') do (
     set "LINE=%%L"
 )
 if defined LINE if not defined HAS_KEY (
-    for /f "tokens=2 delims== " %%K in ('findstr /i "GROQ_API_KEY" .env') do set "V=%%K"
+    for /f "tokens=2 delims== " %%K in ('findstr /i "OPENROUTER_API_KEY" .env') do set "V=%%K"
 )
 if defined V (
-    if not "%V%"=="your_groq_api_key_here" (
-        echo [OK] GROQ_API_KEY is configured.
+    if not "%V%"=="your_openrouter_api_key_here" (
+        echo [OK] OPENROUTER_API_KEY is configured.
         goto :server
     )
 )
 
 echo.
 echo  ========================================================
-echo  GROQ_API_KEY is not set.
-echo  Get a free key at:  https://console.groq.com/keys
+echo  OPENROUTER_API_KEY is not set.
+echo  Get a free key at:  https://openrouter.ai/keys
 echo  Then edit backend\.env  and set:
-echo      GROQ_API_KEY=your_key_here
+echo      OPENROUTER_API_KEY=your_key_here
 echo  ========================================================
 echo [NOTE] The server will still start, but AI features will
 echo        show a clear message until the key is added.
@@ -77,7 +77,7 @@ echo.
 echo  ========================================================
 echo   Server running at: http://localhost:8000
 echo   API docs at:       http://localhost:8000/docs
-echo   Press Ctrl+C to stop
+echo   Auto-restarts if it crashes. Press Ctrl+C to stop
 echo  ========================================================
 echo.
-python main.py
+python start_server.py

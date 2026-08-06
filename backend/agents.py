@@ -1,6 +1,6 @@
 """
 agents.py
-LangChain AI agents powered by Groq LLM + ChromaDB RAG.
+LangChain AI agents powered by OpenRouter LLM + ChromaDB RAG.
 Handles: Trend Analysis, Gap Finding, Idea Generation, Blueprint Creation.
 """
 
@@ -9,14 +9,12 @@ import json
 import random
 import re
 import time
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.output_parsers import StrOutputParser
 from pydantic import BaseModel, Field
 from typing import Optional
 import config
-
-# ─────────────────────────── Pydantic Schemas ───────────────────────────────
 
 class ProjectIdea(BaseModel):
     title: str = Field(description="Catchy project title")
@@ -41,35 +39,36 @@ class TrendAnalysis(BaseModel):
     key_insights: list[str] = Field(description="Key trends observed")
     predicted_hot_domains_2025: list[str] = Field(description="Predicted hot domains for 2025")
 
-# ─────────────────────────── Singleton Loader ────────────────────────────────
-
 class LLMQuotaError(RuntimeError):
     """Raised when the LLM provider's usage limit (daily token quota, etc.) is hit."""
 
 _llms: dict = {}
-def get_llm(max_tokens: Optional[int] = None, json_mode: bool = False) -> ChatGroq:
-    """Return a cached ChatGroq instance. Different max_tokens/json_mode values get their
-    own instance so we can cap token burn per endpoint (chat is small, blueprints big)
-    and force strict JSON output where needed."""
+
+def get_llm(max_tokens: Optional[int] = None, model: Optional[str] = None) -> ChatOpenAI:
     global _llms
     mt = max_tokens if max_tokens else 4096
-    key = (mt, json_mode)
+    m = model or config.OPENROUTER_MODEL
+    key = (m, mt)
     if key not in _llms:
-        kwargs = {
-            "api_key": config.GROQ_API_KEY,
-            "model": config.GROQ_MODEL,
-            "temperature": 0.7,
-            "max_tokens": mt,
-        }
-        if json_mode:
-            # Force the provider to return strict JSON (reduces truncation/parse errors).
-            kwargs["model_kwargs"] = {"response_format": {"type": "json_object"}}
-        _llms[key] = ChatGroq(**kwargs)
+        kwargs = dict(
+            api_key=config.OPENROUTER_API_KEY,
+            base_url=config.OPENROUTER_BASE_URL,
+            model=m,
+            temperature=0.7,
+            max_tokens=mt,
+            timeout=120.0,       # bound each provider call so nothing hangs forever
+            max_retries=2,       # retry transient network / 5xx / 429 errors
+        )
+        # qwen3 models default to a thinking/reasoning mode that can occasionally
+        # emit only a reasoning block with an empty final answer, which makes
+        # OpenRouter fail JSON validation ("json_validate_failed"). Disable it so
+        # the model always returns readable JSON.
+        if m.startswith("qwen"):
+            kwargs["extra_body"] = {"reasoning": {"enabled": False}}
+        _llms[key] = ChatOpenAI(**kwargs)
     return _llms[key]
-# ─────────────────────────── Resilient LLM Invoker ───────────────────────────
 
 def _is_rate_limit(exc: Exception) -> bool:
-    """True when the error is a Groq/OpenAI rate-limit or quota exhaustion."""
     sc = getattr(exc, "status_code", None)
     if sc is not None and str(sc) == "429":
         return True
@@ -80,26 +79,65 @@ def _is_rate_limit(exc: Exception) -> bool:
     return False
 
 def _strip_reasoning(text: str) -> str:
-    """Remove <think>...</think> reasoning blocks that reasoning models (e.g.
-    Qwen3, gpt-oss) prepend to their answers. Without this, JSON parsing breaks
-    and chat shows the model's internal monologue to users."""
-    text = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
+    text = re.sub(r" thinking.*? response", "", text, flags=re.S)
     return text.strip()
 
-async def _invoke_with_retry(call, *args, attempts: int = 3, base_delay: float = 1.0, **kwargs):
-    """Invoke an LLM call (e.g. chain.ainvoke) with exponential backoff so transient
-    Groq failures (5xx, brief timeouts) don't surface as hard errors.
+def _extract_json(text: str):
+    """Extract a JSON object or array from a model response."""
+    text = _strip_reasoning(text or "")
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+        text = re.sub(r"```\s*$", "", text).strip()
 
-    Rate-limit / quota errors are raised immediately with a clear message — retrying
-    them only burns the daily token budget faster."""
-    if not config.GROQ_API_KEY:
-        raise RuntimeError("GROQ_API_KEY is not set. Add it to backend/.env and restart.")
+    start_arr = text.find("[")
+    start_obj = text.find("{")
+
+    if start_obj == -1 and start_arr == -1:
+        raise ValueError("No JSON found in response")
+
+    if start_obj == -1:
+        start = start_arr
+        end = text.rfind("]") + 1
+        if end <= start:
+            raise ValueError("No valid JSON array found")
+    elif start_arr == -1:
+        start = start_obj
+        end = text.rfind("}") + 1
+        if end <= start:
+            raise ValueError("No valid JSON object found")
+    else:
+        start = min(start_obj, start_arr)
+        if start == start_obj:
+            end = text.rfind("}") + 1
+        else:
+            end = text.rfind("]") + 1
+
+    return json.loads(text[start:end])
+
+def _as_list(data) -> list:
+    """Coerce an extracted JSON payload into a list so consumers can always iterate it.
+    Handles models that return a single object (wrap it) or wrap an array under a key."""
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        for key in ("ideas", "gaps", "projects", "items", "results", "data"):
+            if isinstance(data.get(key), list):
+                return data[key]
+        return [data]
+    return []
+
+async def _invoke_with_retry(call, *args, attempts: int = 3, base_delay: float = 1.0, call_timeout: float = 150.0, **kwargs):
+    if not config.OPENROUTER_API_KEY:
+        raise RuntimeError("OPENROUTER_API_KEY is not set. Add it to backend/.env and restart.")
     last_err = None
     for i in range(attempts):
         try:
-            return await call(*args, **kwargs)
+            return await asyncio.wait_for(call(*args, **kwargs), timeout=call_timeout)
         except asyncio.CancelledError:
             raise
+        except asyncio.TimeoutError as e:
+            last_err = e
         except Exception as e:
             last_err = e
             if _is_rate_limit(e):
@@ -109,9 +147,6 @@ async def _invoke_with_retry(call, *args, attempts: int = 3, base_delay: float =
             delay = base_delay * (2 ** i) + random.random()
             await asyncio.sleep(delay)
     raise last_err
-
-
-# ----------------------------------------------------------------
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -140,13 +175,10 @@ def get_all_projects_data():
     return _documents_list, _metadatas_list, _tfidf_vectorizer, _tfidf_matrix
 
 def retrieve_similar_projects(query: str, n_results: int = 6) -> list[dict]:
-    """Lightweight TF-IDF similarity search (0MB PyTorch RAM)."""
     docs, metas, vectorizer, matrix = get_all_projects_data()
     query_vec = vectorizer.transform([query])
     similarities = cosine_similarity(query_vec, matrix)[0]
-    
     top_indices = similarities.argsort()[-n_results:][::-1]
-    
     projects = []
     for idx in top_indices:
         projects.append({
@@ -156,32 +188,29 @@ def retrieve_similar_projects(query: str, n_results: int = 6) -> list[dict]:
         })
     return projects
 
+_summary_cache: Optional[str] = None
+
 def get_all_projects_summary() -> str:
-    """Get a compact summary of projects for trend analysis. Kept short to limit
-    LLM input tokens (and therefore daily Groq quota burn)."""
-    with open(config.DATA_PATH, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    global _summary_cache
+    if _summary_cache is None:
+        with open(config.DATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        summaries = []
+        for p in data[:28]:
+            summaries.append(
+                f"{p['year']} | {p['domain']} | {p['title']} | "
+                f"Tech: {', '.join(p['technologies'][:3])}"
+            )
+        _summary_cache = "\n".join(summaries)
+    return _summary_cache
 
-    summaries = []
-    for p in data[:28]:
-        summaries.append(
-            f"{p['year']} | {p['domain']} | {p['title']} | "
-            f"Tech: {', '.join(p['technologies'][:3])}"
-        )
-    return "\n".join(summaries)
-
-# ─────────────────────────── Agent: Trend Analyzer ───────────────────────────
-
-TRENDS_TTL_SECONDS = 6 * 60 * 60  # cache successful trend analysis for 6 hours
+TRENDS_TTL_SECONDS = 6 * 60 * 60
 _trends_cache: dict = {"ts": 0.0, "data": None}
 
 def _trends_fallback() -> dict:
-    """Deterministic trend report computed from the dataset. Used when the LLM is
-    unavailable so the Trends page always renders instead of showing an error."""
     stats = get_statistics()
     total = stats["total_projects"]
     breakdown = stats["domain_breakdown"]
-
     top_domains = []
     for domain, count in sorted(breakdown.items(), key=lambda x: x[1], reverse=True)[:8]:
         top_domains.append({
@@ -190,10 +219,7 @@ def _trends_fallback() -> dict:
             "percentage": round((count / total) * 100) if total else 0,
             "key_themes": [],
         })
-
     techs = [t["tech"] for t in stats["top_technologies"][:6]]
-    year_breakdown = stats["year_breakdown"]
-
     return {
         "top_domains": top_domains,
         "rising_technologies": techs,
@@ -208,44 +234,7 @@ def _trends_fallback() -> dict:
         "predicted_hot_domains_2025": [d["domain"] for d in top_domains[:4]],
     }
 
-async def _analyze_trends_llm() -> dict:
-    llm = get_llm(max_tokens=1500, json_mode=True)
-    all_projects = get_all_projects_summary()
-
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", """You are an expert analyst of Smart India Hackathon (SIH) trends.
-        Analyze the provided list of winning projects and extract key trends.
-        Return a valid JSON object matching the schema exactly. No markdown, no extra text."""),
-        ("human", """Analyze these SIH winning projects from 2017-2024:
-
-{projects}
-
-Return a JSON with these exact keys:
-{{
-  "top_domains": [
-    {{"domain": "Healthcare", "win_count": 8, "percentage": 22, "key_themes": ["telemedicine", "AI diagnosis"]}},
-    ...
-  ],
-  "rising_technologies": ["LangChain", "RAG", "Edge AI", ...],
-  "dominant_problem_types": ["Rural Access", "Governance Transparency", ...],
-  "hardware_vs_software_ratio": "30% hardware, 70% software",
-  "key_insights": ["insight1", "insight2", ...],
-  "predicted_hot_domains_2025": ["domain1", "domain2", ...]
-}}""")
-    ])
-
-    chain = prompt | llm | StrOutputParser()
-    response = await _invoke_with_retry(chain.ainvoke, {"projects": all_projects})
-
-    # Parse JSON from response
-    clean = response.strip().strip("```json").strip("```").strip()
-    return json.loads(clean)
-
 async def analyze_trends() -> dict:
-    """Trend analysis computed deterministically from the dataset (no LLM call).
-
-    This keeps the Trends page instant, always available, and free of the Groq
-    token budget — it can never fail, time out, or show an error to users."""
     now = time.time()
     if _trends_cache["data"] is not None and (now - _trends_cache["ts"]) < TRENDS_TTL_SECONDS:
         return _trends_cache["data"]
@@ -254,131 +243,53 @@ async def analyze_trends() -> dict:
     _trends_cache["data"] = data
     return data
 
-# ─────────────────────────── Agent: Gap Finder ───────────────────────────────
-
 async def find_gaps(domain: str = "all") -> list[dict]:
-    """Find unsolved problem spaces in SIH history."""
-    llm = get_llm(max_tokens=2000, json_mode=True)
-    
+    llm = get_llm(max_tokens=4000)
     all_projects = get_all_projects_summary()
-    
     domain_filter = f"Focus on the {domain} domain." if domain != "all" else "Cover all domains."
-    
     prompt = ChatPromptTemplate.from_messages([
-        ("system", """You are an expert at identifying unsolved problems and innovation gaps
-        in the Smart India Hackathon ecosystem. You understand both technical feasibility
-        and social impact in the Indian context."""),
-        ("human", """Based on these SIH winning projects (2017-2024):
+        ("system", "Output ONLY a JSON array. No explanation."),
+        ("human", """SIH projects (2017-2024):
 
 {projects}
 
 {domain_filter}
 
-Identify 5 significant UNSOLVED PROBLEM GAPS that:
-1. Have NOT been addressed in any past SIH project
-2. Are urgent real-world Indian problems
-3. Are technically solvable by a 6-person student team in 1 month
-4. Have massive social impact potential
-
-Return a JSON array:
-[
-  {{
-    "gap_title": "Title of the gap",
-    "problem": "Detailed description of unsolved problem",
-    "why_unsolved": "Why hasn't this been solved yet",
-    "potential_solution_direction": "High-level approach",
-    "domain": "Domain category",
-    "urgency": "High/Medium/Low",
-    "beneficiaries": "Who would benefit",
-    "estimated_impact": "Quantified potential impact"
-  }},
-  ...
-]""")
+Find 5 unsolved problem gaps. Return ONLY:
+[{{"gap_title":"T","problem":"P","why_unsolved":"W","potential_solution_direction":"S","domain":"D","urgency":"High/Medium/Low","beneficiaries":"B","estimated_impact":"I"}}]""")
     ])
-    
     chain = prompt | llm | StrOutputParser()
     response = await _invoke_with_retry(chain.ainvoke, {
         "projects": all_projects,
         "domain_filter": domain_filter
     })
-    
     try:
-        clean = _strip_reasoning(response).strip("```json").strip("```").strip()
-        # Find JSON array
-        start = clean.find("[")
-        end = clean.rfind("]") + 1
-        return json.loads(clean[start:end])
+        return _as_list(_extract_json(response))
     except Exception:
         return [{"error": "Could not parse gaps", "raw": response}]
 
-# ─────────────────────────── Agent: Idea Generator ───────────────────────────
-
-async def generate_ideas(
-    domain: str,
-    theme: str = "",
-    num_ideas: int = 3
-) -> list[dict]:
-    """Generate novel SIH project ideas with novelty and feasibility scoring."""
-    llm = get_llm(max_tokens=3500, json_mode=True)
-    
-    # RAG: retrieve similar past projects
+async def generate_ideas(domain: str, theme: str = "", num_ideas: int = 3) -> list[dict]:
+    llm = get_llm(max_tokens=6000)
     query = f"{domain} {theme} India problem solution"
     similar = retrieve_similar_projects(query, n_results=6)
-    
     context = "\n\n".join([
         f"Past Project: {p['metadata']['title']} ({p['metadata']['year']})\n"
         f"Domain: {p['metadata']['domain']}\n"
         f"Summary: {p['document'][:300]}..."
         for p in similar
     ])
-    
-    past_ids = [p["metadata"]["id"] for p in similar]
-    
     prompt = ChatPromptTemplate.from_messages([
-        ("system", """You are an expert SIH project advisor with deep knowledge of:
-        - Indian social problems and government priorities
-        - Emerging technologies (AI/ML, IoT, Blockchain, GenAI)
-        - What makes winning SIH projects (novelty + feasibility + impact)
-        - Student team capabilities (6 people, 1-month development)
-        
-        Generate TRULY NOVEL ideas that haven't been done before in SIH.
-        Each idea must solve a REAL, URGENT Indian problem.
-        Return ONLY valid JSON, no markdown or extra text."""),
-        ("human", """Generate {num_ideas} novel SIH project ideas for domain: {domain}
-        {theme_instruction}
-        
-        PAST SIH PROJECTS (for context & to AVOID duplication):
-        {context}
-        
-        Each idea MUST:
-        - Be genuinely novel (not a copy of past projects)
-        - Solve a real Indian problem
-        - Be buildable by 6 students in 1 month
-        - Use modern tech (AI/ML, IoT, Blockchain, GenAI)
-        
-        Return a JSON array of {num_ideas} ideas:
-        [
-          {{
-            "title": "Catchy project title",
-            "tagline": "One-line description",
-            "problem_statement": "Detailed problem (2-3 sentences)",
-            "solution": "Detailed solution (3-4 sentences)",
-            "domain": "{domain}",
-            "technologies": ["tech1", "tech2", "tech3", "tech4", "tech5"],
-            "novelty_score": 8,
-            "feasibility_score": 7,
-            "impact_score": 9,
-            "novelty_reason": "Why this hasn't been done before",
-            "similar_past_projects": ["project-id1"],
-            "target_beneficiaries": "Who benefits and estimated number",
-            "ministry_fit": "Ministry of XYZ",
-            "sih_problem_statement_type": "Software/Hardware"
-          }}
-        ]""")
+        ("system", "Output ONLY a JSON array. No explanation."),
+        ("human", """Generate {num_ideas} novel SIH project ideas for {domain}.
+{theme_instruction}
+
+Past projects:
+{context}
+
+Return ONLY:
+[{{"title":"T","tagline":"TL","problem_statement":"P","solution":"S","domain":"{domain}","technologies":["t1","t2"],"novelty_score":8,"feasibility_score":7,"impact_score":9,"novelty_reason":"R","similar_past_projects":["id"],"target_beneficiaries":"B","ministry_fit":"M"}}]""")
     ])
-    
     theme_instruction = f"Theme/Focus: {theme}" if theme else ""
-    
     chain = prompt | llm | StrOutputParser()
     response = await _invoke_with_retry(chain.ainvoke, {
         "num_ideas": num_ideas,
@@ -386,92 +297,59 @@ async def generate_ideas(
         "theme_instruction": theme_instruction,
         "context": context
     })
-    
     try:
-        clean = _strip_reasoning(response).strip("```json").strip("```").strip()
-        start = clean.find("[")
-        end = clean.rfind("]") + 1
-        ideas = json.loads(clean[start:end])
-        return ideas
+        return _as_list(_extract_json(response))[:num_ideas]
     except Exception:
         return [{"error": "Could not parse ideas", "raw": response[:500]}]
 
-# ─────────────────────────── Agent: Chat ─────────────────────────────────────
-
 async def chat_with_advisor(message: str, history: list[dict]) -> str:
-    """Chat with the SIH advisor using RAG context."""
-    llm = get_llm(max_tokens=1000)
-    
-    # Retrieve relevant projects
+    llm = get_llm(max_tokens=1000, model=config.CHAT_MODEL)
     similar = retrieve_similar_projects(message, n_results=4)
     context = "\n".join([
         f"- {p['metadata']['title']} ({p['metadata']['year']}): {p['document'][:200]}..."
         for p in similar
     ])
-    
-    # Build message history
     messages = [
-        ("system", f"""You are an expert SIH (Smart India Hackathon) advisor helping students 
-        build winning projects. You have deep knowledge of:
-        - All SIH winning projects from 2017-2024
-        - Indian government priorities and ministries  
-        - Modern tech stacks suitable for student teams
-        - What judges look for: novelty, impact, feasibility
-        
-        Relevant past projects for context:
-        {context}
-        
-        Be encouraging, specific, and give actionable advice.""")
+        ("system", f"""You are a SIH (Smart India Hackathon) advisor helping students build winning projects. You know all SIH winning projects from 2017-2024. Give actionable, specific, encouraging advice.
+
+Relevant past projects for context:
+{context}""")
     ]
-    
-    # Add history
-    for msg in history[-6:]:  # Last 3 exchanges
+    for msg in history[-6:]:
         messages.append((msg["role"], msg["content"]))
-    
     messages.append(("human", message))
-    
     prompt = ChatPromptTemplate.from_messages(messages)
     chain = prompt | llm | StrOutputParser()
     try:
         response = await _invoke_with_retry(chain.ainvoke, {})
         return _strip_reasoning(response)
     except LLMQuotaError:
-        return ("I've hit my AI service's usage limit for the moment — it resets "
-                "automatically in a little while. Please try again soon; I'll be "
-                "ready to help with SIH ideas then. 🙂")
+        return ("I've hit my AI service's usage limit for the moment. Please try again soon; I'll be ready to help with SIH ideas then.")
     except Exception:
-        return ("I'm having trouble reaching the AI service right now. "
-                "Please try again in a moment.")
+        return ("I'm having trouble reaching the AI service right now. Please try again in a moment.")
 
-# ─────────────────────────── Statistics ──────────────────────────────────────
+_stats_cache: Optional[dict] = None
 
 def get_statistics() -> dict:
-    """Get overall dataset statistics."""
+    global _stats_cache
+    if _stats_cache is not None:
+        return _stats_cache
     with open(config.DATA_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
-    
     domains = {}
     years = {}
     techs = {}
-    
     for p in data:
-        # Count domains
         d = p["domain"]
         domains[d] = domains.get(d, 0) + 1
-        
-        # Count years
         y = p["year"]
         years[y] = years.get(y, 0) + 1
-        
-        # Count technologies
         for t in p["technologies"]:
             techs[t] = techs.get(t, 0) + 1
-    
     top_techs = sorted(techs.items(), key=lambda x: x[1], reverse=True)[:10]
-    
-    return {
+    _stats_cache = {
         "total_projects": len(data),
-        "years_covered": f"2017-2024",
+        "years_covered": "2017-2024",
         "domains_count": len(domains),
         "domain_breakdown": domains,
         "year_breakdown": dict(sorted(years.items())),
@@ -479,3 +357,4 @@ def get_statistics() -> dict:
         "hardware_projects": sum(1 for p in data if p.get("is_hardware")),
         "software_projects": sum(1 for p in data if not p.get("is_hardware")),
     }
+    return _stats_cache

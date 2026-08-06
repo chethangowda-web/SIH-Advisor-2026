@@ -25,14 +25,15 @@ def _as_error(exc: Exception, default: str = "Something went wrong. Please try a
     return {"success": False, "error": str(exc) if str(exc) else default}
 
 def _raise_llm_error(exc: Exception) -> HTTPException:
-    """Map an LLM failure to a clean HTTP response. Quota/rate-limit errors become a
-    503 with a friendly message; everything else a 500."""
+    """Map an LLM failure to a clean HTTP response."""
     text = str(exc)
     if "limit" in text.lower() or "429" in text:
         return HTTPException(
             status_code=503,
             detail="The AI service's free daily limit has been reached. Please try again later.",
         )
+    if "json_validate_failed" in text.lower() or "failed to validate json" in text.lower():
+        return HTTPException(status_code=503, detail="AI response validation failed. Please try again.")
     return HTTPException(status_code=500, detail=text or "AI generation failed. Please try again.")
 
 app = FastAPI(
